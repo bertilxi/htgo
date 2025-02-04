@@ -43,6 +43,7 @@ func RenderPage(page Page) func(c *gin.Context) {
 			Links:           page.Links,
 			Lang:            template.HTML(page.Lang),
 			Class:           template.HTML(page.Class),
+			Hydrate:         page.Hydrate,
 		}
 
 		c.Header("Content-Type", "text/html")

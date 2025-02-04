@@ -71,6 +71,9 @@ func getPage(page Page, options SetupOptions) Page {
 	page.Links = append(page.Links, options.Links...)
 	page.MetaTags = append(page.MetaTags, options.MetaTags...)
 
+	if options.Hydrate {
+		page.Hydrate = options.Hydrate
+	}
 	if page.Title == "" {
 		page.Title = options.Title
 	}

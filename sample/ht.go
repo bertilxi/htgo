@@ -5,9 +5,10 @@ import (
 )
 
 var HtgoOptions = htgo.SetupOptions{
-	Title: "Picsel",
-	Lang:  "en",
-	Class: "dark",
+	Title:   "Picsel",
+	Lang:    "en",
+	Class:   "dark",
+	Hydrate: true,
 	MetaTags: []htgo.MetaTag{
 		{
 			Name:     "description",

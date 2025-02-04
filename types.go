@@ -25,6 +25,7 @@ type htmlTemplateData struct {
 	CSS             template.CSS
 	Title           template.HTML
 	IsDev           bool
+	Hydrate         bool
 	RouteID         string
 	MetaTags        []MetaTag
 	Links           []Link
@@ -35,6 +36,7 @@ type htmlTemplateData struct {
 type Page struct {
 	Route    string
 	File     string
+	Hydrate  bool
 	Props    any
 	Title    string
 	MetaTags []MetaTag
@@ -49,6 +51,7 @@ type SetupOptions struct {
 	MetaTags []MetaTag
 	Links    []Link
 	Pages    []Page
+	Hydrate  bool
 	Lang     string
 	Class    string
 }

@@ -33,8 +33,11 @@ const htmlTemplate = `<!DOCTYPE html>
 </head>
 <body>
     <div id="page">{{.RenderedContent}}</div>
+	{{if .Hydrate}}
 	<script type="module" src="{{.JS}}"></script>
 	<script>window.PAGE_PROPS = {{.InitialProps}};</script>
+	{{end}}
+
 	{{if .IsDev}}
 	<script>
       function debounce(func, timeout = 500) {

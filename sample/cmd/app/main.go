@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	os.Setenv("GIN_MODE", "release")
-	// os.Setenv("GIN_MODE", "debug")
+	// os.Setenv("GIN_MODE", "release")
+	os.Setenv("GIN_MODE", "debug")
 
 	r := gin.Default()
 
