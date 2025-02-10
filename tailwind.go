@@ -14,7 +14,7 @@ import (
 )
 
 func download(url string, path string) error {
-	out, err := os.Create(path)
+	out, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
 		return err
 	}
@@ -28,11 +28,6 @@ func download(url string, path string) error {
 	defer resp.Body.Close()
 
 	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return err
-	}
-
-	err = os.Chmod(path, 0755)
 	if err != nil {
 		return err
 	}
@@ -63,20 +58,28 @@ func tailwindUrl() string {
 	return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-arm64"
 }
 
-func getTailwindPath() string {
-	if _, err := os.Stat("./.htgo-cache/tailwindcss"); os.IsNotExist(err) {
-		os.MkdirAll("./.htgo-cache", 0755)
+func getTailwindPath() (string, error) {
+	filename := "./.htgo-cache/tailwindcss"
 
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		os.MkdirAll("./.htgo-cache", 0755)
 		fmt.Println("downloading tailwind")
-		download(tailwindUrl(), "./.htgo-cache/tailwindcss")
+		err = download(tailwindUrl(), filename)
+		if err != nil {
+			return "", err
+		}
 		fmt.Println("tailwind downloaded")
 	}
 
-	return "./.htgo-cache/tailwindcss"
+	return filename, nil
 }
 
 func runTailwind(inputFile string, outputFile string, minify bool) error {
-	cmdPath := getTailwindPath()
+	cmdPath, err := getTailwindPath()
+
+	if err != nil {
+		return err
+	}
 
 	args := []string{
 		"-i", inputFile,
@@ -89,7 +92,7 @@ func runTailwind(inputFile string, outputFile string, minify bool) error {
 
 	cmd := exec.Command(cmdPath, args...)
 
-	_, err := cmd.Output()
+	_, err = cmd.Output()
 	if err != nil {
 		return err
 	}
@@ -98,8 +101,6 @@ func runTailwind(inputFile string, outputFile string, minify bool) error {
 }
 
 func NewTailwindPlugin(shouldMinify bool) api.Plugin {
-	go getTailwindPath()
-
 	return api.Plugin{
 		Name: "tailwind",
 		Setup: func(b api.PluginBuild) {
@@ -127,6 +128,7 @@ func NewTailwindPlugin(shouldMinify bool) api.Plugin {
 				tmpFiles = append(tmpFiles, tmpFilePath)
 
 				err = runTailwind(sourceFullPath, tmpFilePath, shouldMinify)
+
 				return api.OnResolveResult{
 					Path: tmpFilePath,
 				}, err

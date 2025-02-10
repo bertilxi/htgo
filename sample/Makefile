@@ -5,7 +5,7 @@ install:
 
 build:
 	GIN_MODE=release go run cmd/build/main.go
-	GIN_MODE=release go build -o dist/app cmd/app/main.go
+	GIN_MODE=release CGO_ENABLED=0 GOOS=linux go build -o dist/app -a -ldflags '-extldflags "-static"' cmd/app/main.go
 
 dev:
 	air \
