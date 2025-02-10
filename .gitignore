@@ -1,3 +1,5 @@
 node_modules/
 .htgo/
+.htgo-cache/
+dist/
 main

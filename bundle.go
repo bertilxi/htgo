@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	esbuild "github.com/evanw/esbuild/pkg/api"
-	estailwind "github.com/iamajoe/esbuild-plugin-tailwind"
 )
 
 // [Yaffle/TextEncoderTextDecoder.js](https://gist.github.com/Yaffle/5458286)
@@ -165,7 +164,7 @@ func clientOptions(page string) esbuild.BuildOptions {
 			".css": esbuild.LoaderCSS,
 		},
 		Plugins: []esbuild.Plugin{
-			estailwind.NewTailwindPlugin(!IsDev()),
+			NewTailwindPlugin(!IsDev()),
 		},
 		Bundle:            true,
 		Write:             true,

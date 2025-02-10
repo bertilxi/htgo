@@ -1,13 +1,15 @@
 package app
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/bertilxi/htgo"
+	"github.com/bertilxi/htgo/sample/app/public"
 	"github.com/gin-gonic/gin"
 )
 
-var NewHtgoConfig = func(r *gin.Engine) htgo.HtgoConfig {
+func NewHtgoConfig(r *gin.Engine) htgo.HtgoConfig {
 	return htgo.HtgoConfig{
 		Router:  r,
 		EmbedFS: &EmbedFS,
@@ -61,7 +63,7 @@ var NewHtgoConfig = func(r *gin.Engine) htgo.HtgoConfig {
 func NewRouter() *gin.Engine {
 	r := gin.Default()
 
-	r.Static("/public", "./app/public")
+	r.StaticFS("/public", http.FS(public.Public))
 
 	return r
 }
