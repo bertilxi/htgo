@@ -7,5 +7,9 @@ import (
 )
 
 func main() {
-	cli.Build(app.NewHtgoConfig(nil))
+	r := app.NewRouter()
+
+	cli.Dev(app.NewHtgoConfig(r))
+
+	r.Run()
 }

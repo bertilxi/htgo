@@ -2,47 +2,51 @@ package htgo
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
-const cacheDir = ".htgo"
+const CacheDir = ".htgo"
 
-func isDev() bool {
-	return os.Getenv("GIN_MODE") == "debug"
+func IsDev() bool {
+	return os.Getenv("GIN_MODE") != "release"
 }
 
-func pageCacheKey(page string, extension string) string {
+func PageCacheKey(page string, extension string) string {
 	pageKey := strings.TrimSuffix(page, filepath.Ext(page))
 	cacheKey := fmt.Sprintf("%s.%s", pageKey, extension)
-	return path.Join(cacheDir, cacheKey)
+	return path.Join(CacheDir, cacheKey)
 }
 
-func mkdirCache(page string) {
-	if err := os.MkdirAll(path.Dir(pageCacheKey(page, "")), 0755); err != nil {
+func MkdirCache(page string) {
+	if err := os.MkdirAll(path.Dir(PageCacheKey(page, "")), 0755); err != nil {
 		log.Fatal("Could not create cache directory:", err)
 	}
 }
 
-var EmbedFS *embed.FS
+var embedFS *embed.FS
 
 func SetEmbedFS(fs *embed.FS) {
-	EmbedFS = fs
+	embedFS = fs
 }
 
 func readFile(name string) ([]byte, error) {
-	if isDev() || EmbedFS == nil {
+	if IsDev() || embedFS == nil {
 		return os.ReadFile(name)
 	}
 
-	return EmbedFS.ReadFile(name)
+	return embedFS.ReadFile(name)
 }
 
-func assignPage(page Page, newPage Page) Page {
+func AssignPage(page Page, newPage Page) Page {
 	if newPage.Title != "" {
 		page.Title = newPage.Title
 	}
@@ -65,18 +69,84 @@ func assignPage(page Page, newPage Page) Page {
 	return page
 }
 
-func getPage(page Page, options SetupOptions) Page {
-	page.Lang = options.Lang
+func GetPage(page Page, options SetupOptions) Page {
 	page.Class = options.Class
 	page.Links = append(page.Links, options.Links...)
 	page.MetaTags = append(page.MetaTags, options.MetaTags...)
+	page.Lang = options.Lang
 
-	if options.Hydrate {
-		page.Hydrate = options.Hydrate
+	if page.Mode == "" {
+		page.Mode = PageModeNoJS
+	}
+	if page.Lang == "" {
+		page.Lang = "en"
 	}
 	if page.Title == "" {
 		page.Title = options.Title
 	}
 
 	return page
+}
+
+func renderPage(page Page) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		if page.Handler != nil {
+			newPage := page.Handler(c)
+			page = AssignPage(page, newPage)
+		}
+
+		jsonProps, err := json.Marshal(page.Props)
+
+		if err != nil {
+			log.Fatal("Error parsing props:", err)
+		}
+
+		renderedHTML := ssrCached(page.File)
+		clientBundle, clientCSS := BuildClientCached(page.File)
+
+		tmpl, err := template.New("webpage").Parse(HtmlTemplate)
+		if err != nil {
+			log.Fatal("Error parsing template:", err)
+		}
+
+		data := HtmlTemplateData{
+			RenderedContent: template.HTML(renderedHTML),
+			InitialProps:    template.JS(jsonProps),
+			JS:              template.JS(clientBundle),
+			CSS:             template.CSS(clientCSS),
+			Title:           template.HTML(page.Title),
+			IsDev:           IsDev(),
+			RouteID:         page.File,
+			MetaTags:        page.MetaTags,
+			Links:           page.Links,
+			Lang:            template.HTML(page.Lang),
+			Class:           template.HTML(page.Class),
+			Hydrate:         page.Mode == PageModeJS,
+		}
+
+		c.Header("Content-Type", "text/html")
+		err = tmpl.Execute(c.Writer, data)
+
+		if err != nil {
+			log.Fatal("Error executing template:", err)
+		}
+	}
+}
+
+func MapOptions(options SetupOptions) SetupOptions {
+	if options.Mode == nil {
+		options.Mode = &HtgoModeStatic
+	}
+
+	return options
+}
+
+func GetPages(options SetupOptions) []Page {
+	appPages := []Page{}
+
+	for _, page := range options.Pages {
+		appPages = append(appPages, GetPage(page, options))
+	}
+
+	return appPages
 }

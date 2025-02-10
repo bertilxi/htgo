@@ -9,7 +9,6 @@ import (
 
 	esbuild "github.com/evanw/esbuild/pkg/api"
 	estailwind "github.com/iamajoe/esbuild-plugin-tailwind"
-	v8 "rogchap.com/v8go"
 )
 
 // [Yaffle/TextEncoderTextDecoder.js](https://gist.github.com/Yaffle/5458286)
@@ -17,7 +16,7 @@ const textEncoderPolyfill = `function TextEncoder(){} TextEncoder.prototype.enco
 const processPolyfill = `var process = {env: {NODE_ENV: "production"}};`
 const consolePolyfill = `var console = {log: function(){},error: function(){}};`
 
-const htmlTemplate = `<!DOCTYPE html>
+const HtmlTemplate = `<!DOCTYPE html>
 <html lang="{{.Lang}}" class="{{.Class}}">
 <head>
     <meta charset="UTF-8">
@@ -92,7 +91,7 @@ const root = ReactDOM.hydrateRoot(
 func backendOptions(page string) esbuild.BuildOptions {
 	pageDir := path.Dir(page)
 	pageName := path.Base(page)
-	outfile := strings.TrimSuffix(path.Join(cacheDir, page), filepath.Ext(page)) + ".ssr.js"
+	outfile := strings.TrimSuffix(path.Join(CacheDir, page), filepath.Ext(page)) + ".ssr.js"
 
 	return esbuild.BuildOptions{
 		Outfile: outfile,
@@ -113,9 +112,9 @@ func backendOptions(page string) esbuild.BuildOptions {
 		},
 		Bundle:            true,
 		Write:             true,
-		MinifyWhitespace:  !isDev(),
-		MinifyIdentifiers: !isDev(),
-		MinifySyntax:      !isDev(),
+		MinifyWhitespace:  !IsDev(),
+		MinifyIdentifiers: !IsDev(),
+		MinifySyntax:      !IsDev(),
 	}
 }
 
@@ -123,14 +122,14 @@ func buildBackend(page string) string {
 	result := esbuild.Build(backendOptions(page))
 
 	if result.Errors != nil {
-		log.Fatal("Failed to build client bundle", result.Errors)
+		log.Fatal("Failed to build server bundle", result.Errors)
 	}
 
 	return string(result.OutputFiles[0].Contents)
 }
 
-func buildBackendCached(page string) string {
-	cacheKey := pageCacheKey(page, "ssr.js")
+func BuildBackendCached(page string) string {
+	cacheKey := PageCacheKey(page, "ssr.js")
 
 	cached, err := readFile(cacheKey)
 	if err == nil {
@@ -140,7 +139,7 @@ func buildBackendCached(page string) string {
 	result := buildBackend(page)
 
 	if err := os.WriteFile(cacheKey, []byte(result), 0644); err != nil {
-		log.Fatal("Could not write client bundle to cache:", err)
+		log.Fatal("Could not write server bundle to cache:", err)
 	}
 
 	return cacheKey
@@ -149,7 +148,7 @@ func buildBackendCached(page string) string {
 func clientOptions(page string) esbuild.BuildOptions {
 	pageDir := path.Dir(page)
 	pageName := path.Base(page)
-	outfile := strings.TrimSuffix(path.Join(cacheDir, page), filepath.Ext(page)) + ".js"
+	outfile := strings.TrimSuffix(path.Join(CacheDir, page), filepath.Ext(page)) + ".js"
 
 	return esbuild.BuildOptions{
 		Outfile: outfile,
@@ -166,13 +165,13 @@ func clientOptions(page string) esbuild.BuildOptions {
 			".css": esbuild.LoaderCSS,
 		},
 		Plugins: []esbuild.Plugin{
-			estailwind.NewTailwindPlugin(!isDev()),
+			estailwind.NewTailwindPlugin(!IsDev()),
 		},
 		Bundle:            true,
 		Write:             true,
-		MinifyWhitespace:  !isDev(),
-		MinifyIdentifiers: !isDev(),
-		MinifySyntax:      !isDev(),
+		MinifyWhitespace:  !IsDev(),
+		MinifyIdentifiers: !IsDev(),
+		MinifySyntax:      !IsDev(),
 	}
 }
 
@@ -186,9 +185,9 @@ func buildClient(page string) (string, string) {
 	return string(result.OutputFiles[0].Contents), string(result.OutputFiles[1].Contents)
 }
 
-func buildClientCached(page string) (string, string) {
-	jsCacheKey := pageCacheKey(page, "js")
-	cssCacheKey := pageCacheKey(page, "css")
+func BuildClientCached(page string) (string, string) {
+	jsCacheKey := PageCacheKey(page, "js")
+	cssCacheKey := PageCacheKey(page, "css")
 
 	_, jsErr := readFile(jsCacheKey)
 	_, cssErr := readFile(cssCacheKey)
@@ -209,19 +208,13 @@ func buildClientCached(page string) (string, string) {
 	return jsCacheKey, cssCacheKey
 }
 
-func ssr(page string, props string) string {
-	backendBundle := buildBackendCached(page)
+func ssrCached(page string) string {
+	cacheKey := PageCacheKey(page, "html")
 
-	ctx := v8.NewContext()
-	_, err := ctx.RunScript(backendBundle, "bundle.js")
+	cached, err := readFile(cacheKey)
 	if err != nil {
-		log.Fatal("Failed to evaluate bundled script:", err)
+		log.Fatal("Could not read html from cache:", err)
 	}
 
-	val, err := ctx.RunScript("renderPage("+props+")", "render.js")
-	if err != nil {
-		log.Fatal("Failed to render React component:", err)
-	}
-
-	return val.String()
+	return string(cached)
 }

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 interface Props {
-  defaultNum: number;
+  defaultNum?: number;
 }
 
 export function Counter(props: Props) {

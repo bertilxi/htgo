@@ -22,7 +22,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func broadcastFileUpdateToClients() {
+func reload() {
 	if hotReloadWs == nil {
 		return
 	}
@@ -33,7 +33,7 @@ func broadcastFileUpdateToClients() {
 	hotReloadWs.WriteMessage(1, []byte("reload"))
 }
 
-func startWatcher() {
+func StartWatcher() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal("Failed to start watcher", err)
@@ -41,7 +41,7 @@ func startWatcher() {
 	}
 	defer watcher.Close()
 
-	if err = filepath.Walk(cacheDir, func(path string, fi os.FileInfo, err error) error {
+	if err = filepath.Walk(CacheDir, func(path string, fi os.FileInfo, err error) error {
 		if fi.Mode().IsDir() {
 			return watcher.Add(path)
 		}
@@ -55,7 +55,7 @@ func startWatcher() {
 		select {
 		case event := <-watcher.Events:
 			if event.Op.String() != "CHMOD" && !strings.Contains(event.Name, ".tmp.") {
-				broadcastFileUpdateToClients()
+				reload()
 			}
 
 		case err := <-watcher.Errors:
@@ -64,7 +64,7 @@ func startWatcher() {
 	}
 }
 
-func websocketHandler(c *gin.Context) {
+func WebsocketHandler(c *gin.Context) {
 	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 
 	if err != nil {
@@ -75,7 +75,7 @@ func websocketHandler(c *gin.Context) {
 	hotReloadWs = ws
 }
 
-func watchServer(page Page) {
+func WatchServer(page Page) {
 	ctx, err := esbuild.Context(backendOptions(page.File))
 	if err != nil {
 		log.Fatal(err)
@@ -87,7 +87,7 @@ func watchServer(page Page) {
 	}
 }
 
-func watchClient(page Page) {
+func WatchClient(page Page) {
 	ctx, err := esbuild.Context(clientOptions(page.File))
 	if err != nil {
 		log.Fatal(err)
