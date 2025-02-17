@@ -88,8 +88,25 @@ func GetPage(page Page, options SetupOptions) Page {
 	return page
 }
 
-func renderPage(page Page) func(c *gin.Context) {
+func CopyPage(page Page) Page {
+	return Page{
+		Route:    page.Route,
+		File:     page.File,
+		Mode:     page.Mode,
+		Props:    page.Props,
+		Title:    page.Title,
+		MetaTags: page.MetaTags,
+		Links:    page.Links,
+		Lang:     page.Lang,
+		Class:    page.Class,
+		Handler:  page.Handler,
+	}
+}
+
+func renderPage(p Page) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		page := CopyPage(p)
+
 		if page.Handler != nil {
 			newPage := page.Handler(c)
 			page = AssignPage(page, newPage)

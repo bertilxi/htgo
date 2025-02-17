@@ -56,8 +56,10 @@ func SsrBuild(page htgo.Page) string {
 	return cacheKey
 }
 
-func renderPage(page htgo.Page) func(c *gin.Context) {
+func renderPage(p htgo.Page) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		page := htgo.CopyPage(p)
+
 		if page.Handler != nil {
 			newPage := page.Handler(c)
 			page = htgo.AssignPage(page, newPage)
