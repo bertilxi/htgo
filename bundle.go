@@ -11,9 +11,7 @@ import (
 )
 
 // [Yaffle/TextEncoderTextDecoder.js](https://gist.github.com/Yaffle/5458286)
-const textEncoderPolyfill = `function TextEncoder(){} TextEncoder.prototype.encode=function(string){var octets=[],length=string.length,i=0;while(i<length){var codePoint=string.codePointAt(i),c=0,bits=0;codePoint<=0x7F?(c=0,bits=0x00):codePoint<=0x7FF?(c=6,bits=0xC0):codePoint<=0xFFFF?(c=12,bits=0xE0):codePoint<=0x1FFFFF&&(c=18,bits=0xF0),octets.push(bits|(codePoint>>c)),c-=6;while(c>=0){octets.push(0x80|((codePoint>>c)&0x3F)),c-=6}i+=codePoint>=0x10000?2:1}return octets};function TextDecoder(){} TextDecoder.prototype.decode=function(octets){var string="",i=0;while(i<octets.length){var octet=octets[i],bytesNeeded=0,codePoint=0;octet<=0x7F?(bytesNeeded=0,codePoint=octet&0xFF):octet<=0xDF?(bytesNeeded=1,codePoint=octet&0x1F):octet<=0xEF?(bytesNeeded=2,codePoint=octet&0x0F):octet<=0xF4&&(bytesNeeded=3,codePoint=octet&0x07),octets.length-i-bytesNeeded>0?function(){for(var k=0;k<bytesNeeded;){octet=octets[i+k+1],codePoint=(codePoint<<6)|(octet&0x3F),k+=1}}():codePoint=0xFFFD,bytesNeeded=octets.length-i,string+=String.fromCodePoint(codePoint),i+=bytesNeeded+1}return string};`
-const processPolyfill = `var process = {env: {NODE_ENV: "production"}};`
-const consolePolyfill = `var console = {log: function(){},error: function(){}};`
+const textEncoderPolyfill = `function TextEncoder(){}function TextDecoder(){}TextEncoder.prototype.encode=function(e){for(var o=[],t=e.length,r=0;r<t;){var n=e.codePointAt(r),c=0,f=0;for(n<=127?(c=0,f=0):n<=2047?(c=6,f=192):n<=65535?(c=12,f=224):n<=2097151&&(c=18,f=240),o.push(f|n>>c),c-=6;c>=0;)o.push(128|n>>c&63),c-=6;r+=n>=65536?2:1}return o},TextDecoder.prototype.decode=function(e){for(var o="",t=0;t<e.length;){var r=e[t],n=0,c=0;if(r<=127?(n=0,c=255&r):r<=223?(n=1,c=31&r):r<=239?(n=2,c=15&r):r<=244&&(n=3,c=7&r),e.length-t-n>0)for(var f=0;f<n;)c=c<<6|63&(r=e[t+f+1]),f+=1;else c=65533,n=e.length-t;o+=String.fromCodePoint(c),t+=n+1}return o};`
 
 const HtmlTemplate = `<!DOCTYPE html>
 <html lang="{{.Lang}}" class="{{.Class}}">
@@ -103,7 +101,7 @@ func backendOptions(page string) esbuild.BuildOptions {
 		Platform: esbuild.PlatformBrowser,
 		Target:   esbuild.ES2020,
 		Banner: map[string]string{
-			"js": textEncoderPolyfill + processPolyfill + consolePolyfill,
+			"js": textEncoderPolyfill,
 		},
 		Loader: map[string]esbuild.Loader{
 			".tsx": esbuild.LoaderTSX,
@@ -181,7 +179,20 @@ func buildClient(page string) (string, string) {
 		log.Fatal("Failed to build client bundle", result.Errors)
 	}
 
-	return string(result.OutputFiles[0].Contents), string(result.OutputFiles[1].Contents)
+	jsResult := ""
+	cssResult := ""
+
+	for _, file := range result.OutputFiles {
+		if strings.HasSuffix(file.Path, ".js") {
+			jsResult = string(file.Contents)
+		}
+
+		if strings.HasSuffix(file.Path, ".css") {
+			cssResult = string(file.Contents)
+		}
+	}
+
+	return jsResult, cssResult
 }
 
 func BuildClientCached(page string) (string, string) {

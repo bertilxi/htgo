@@ -7,7 +7,6 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/iamajoe/esbuild-plugin-tailwind v0.0.0-20240512100750-a8ed34433460
 	rogchap.com/v8go v0.9.0
 )
 

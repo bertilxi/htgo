@@ -120,28 +120,16 @@ func NewTailwindPlugin(shouldMinify bool) api.Plugin {
 					return api.OnResolveResult{Path: sourceFullPath}, nil
 				}
 
-				tmpFile := strings.ReplaceAll(
-					filepath.Base(sourceFullPath),
-					filepath.Ext(sourceFullPath),
-					"") + ".tmp.css"
-				tmpFilePath := filepath.Join(filepath.Dir(sourceFullPath), tmpFile)
+				cwd, _ := os.Getwd()
+				tmpFilePath := filepath.Join(
+					cwd,
+					CacheDir,
+					strings.ReplaceAll(strings.ReplaceAll(sourceFullPath, ".css", ""), cwd, "")+".tmp.css",
+				)
 				tmpFiles = append(tmpFiles, tmpFilePath)
-
 				err = runTailwind(sourceFullPath, tmpFilePath, shouldMinify)
 
-				return api.OnResolveResult{
-					Path: tmpFilePath,
-				}, err
-			})
-			b.OnEnd(func(result *api.BuildResult) (api.OnEndResult, error) {
-				for _, tmp := range tmpFiles {
-					_ = os.Remove(tmp)
-				}
-
-				return api.OnEndResult{
-					Errors:   result.Errors,
-					Warnings: result.Warnings,
-				}, nil
+				return api.OnResolveResult{Path: tmpFilePath}, err
 			})
 		},
 	}
