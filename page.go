@@ -113,6 +113,7 @@ func (page *Page) clone() Page {
 		Lang:        page.Lang,
 		Class:       page.Class,
 		Handler:     page.Handler,
+		embedFS:     page.embedFS,
 	}
 }
 

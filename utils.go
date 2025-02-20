@@ -13,16 +13,11 @@ const CacheDir = ".htgo"
 type HtgoEnv string
 
 const (
-	HtgoEnvBuild HtgoEnv = "build"
-	HtgoEnvProd  HtgoEnv = "production"
+	HtgoEnvProd HtgoEnv = "production"
 )
 
 func IsProd() bool {
 	return os.Getenv("HTGO_ENV") == string(HtgoEnvProd)
-}
-
-func IsBuild() bool {
-	return os.Getenv("HTGO_ENV") == string(HtgoEnvBuild)
 }
 
 func IsDev() bool {

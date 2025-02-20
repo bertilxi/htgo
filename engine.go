@@ -42,7 +42,7 @@ func setupPages(options Options) []Page {
 }
 
 func New(options Options) *Engine {
-	if IsProd() || IsBuild() {
+	if IsProd() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
