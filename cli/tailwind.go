@@ -1,4 +1,4 @@
-package htgo
+package cli
 
 import (
 	"fmt"
@@ -10,8 +10,11 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/bertilxi/htgo"
 	"github.com/evanw/esbuild/pkg/api"
 )
+
+const tailwindPath = "./.htgo-cache/tailwindcss"
 
 func download(url string, path string) error {
 	out, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
@@ -59,19 +62,17 @@ func tailwindUrl() string {
 }
 
 func getTailwindPath() (string, error) {
-	filename := "./.htgo-cache/tailwindcss"
-
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
+	if _, err := os.Stat(tailwindPath); os.IsNotExist(err) {
 		os.MkdirAll("./.htgo-cache", 0755)
 		fmt.Println("downloading tailwind")
-		err = download(tailwindUrl(), filename)
+		err = download(tailwindUrl(), tailwindPath)
 		if err != nil {
 			return "", err
 		}
 		fmt.Println("tailwind downloaded")
 	}
 
-	return filename, nil
+	return tailwindPath, nil
 }
 
 func runTailwind(inputFile string, outputFile string, minify bool) error {
@@ -100,7 +101,7 @@ func runTailwind(inputFile string, outputFile string, minify bool) error {
 	return nil
 }
 
-func NewTailwindPlugin(shouldMinify bool) api.Plugin {
+func newTailwindPlugin(shouldMinify bool) api.Plugin {
 	return api.Plugin{
 		Name: "tailwind",
 		Setup: func(b api.PluginBuild) {
@@ -123,7 +124,7 @@ func NewTailwindPlugin(shouldMinify bool) api.Plugin {
 				cwd, _ := os.Getwd()
 				tmpFilePath := filepath.Join(
 					cwd,
-					CacheDir,
+					htgo.CacheDir,
 					strings.ReplaceAll(strings.ReplaceAll(sourceFullPath, ".css", ""), cwd, "")+".tmp.css",
 				)
 				tmpFiles = append(tmpFiles, tmpFilePath)

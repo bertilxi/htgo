@@ -3,11 +3,11 @@ module github.com/bertilxi/htgo
 go 1.23.5
 
 require (
-	github.com/evanw/esbuild v0.24.2
+	github.com/buke/quickjs-go v0.4.15
+	github.com/evanw/esbuild v0.25.0
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/gorilla/websocket v1.5.3
-	rogchap.com/v8go v0.9.0
 )
 
 require (

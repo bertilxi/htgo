@@ -1,44 +1,26 @@
 package cli
 
 import (
-	"log"
 	"os"
-	"path"
 
 	"github.com/bertilxi/htgo"
-	"github.com/bertilxi/htgo/ssr"
 )
 
-func Build(config htgo.HtgoConfig) {
-	cleanCache()
+func Build(engine *htgo.Engine) error {
+	os.Setenv("HTGO_ENV", string(htgo.HtgoEnvProd))
 
-	config.Options = htgo.MapOptions(config.Options)
-
-	for _, page := range config.Options.Pages {
-		page = htgo.GetPage(page, config.Options)
-
-		htgo.BuildBackendCached(page.File)
-		htgo.BuildClientCached(page.File)
-
-		if config.Options.Mode.Name != htgo.ModeSSR {
-			ssr.SsrBuild(page)
-		}
-	}
-}
-
-func cleanCache() {
-	err := os.RemoveAll(htgo.CacheDir)
+	err := htgo.CleanCache()
 	if err != nil {
-		log.Fatal("Could not remove cache directory:", err)
+		return err
 	}
 
-	err = os.MkdirAll(htgo.CacheDir, 0755)
-	if err != nil {
-		log.Fatal("Could not create cache directory:", err)
+	for _, page := range engine.Pages {
+		page.AssignOptions(engine.Options)
+
+		bundler := bundler{page: &page}
+		bundler.buildBackend()
+		bundler.buildClient()
 	}
 
-	err = os.WriteFile(path.Join(htgo.CacheDir, "keep"), []byte(""), 0644)
-	if err != nil {
-		log.Fatal("Could not write keep file:", err)
-	}
+	return nil
 }

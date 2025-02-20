@@ -1,25 +1,45 @@
 package cli
 
 import (
-	"github.com/bertilxi/htgo"
+	"os"
+	"path"
 
-	"github.com/bertilxi/htgo/ssr"
+	"github.com/bertilxi/htgo"
 )
 
-func Dev(config htgo.HtgoConfig) {
-	appPages := htgo.GetPages(config.Options)
-
-	for _, page := range appPages {
-		htgo.MkdirCache(page.File)
-
-		go htgo.WatchServer(page)
-		go htgo.WatchClient(page)
-		go htgo.StartWatcher()
+func mkdirCache(page string) error {
+	err := os.MkdirAll(path.Dir(htgo.PageCacheKey(page, "")), 0755)
+	if err != nil {
+		return err
 	}
 
-	config.Router.Static(htgo.CacheDir, htgo.CacheDir)
-	config.Router.GET("/ws", htgo.WebsocketHandler)
-	config.Options.Mode = &ssr.HtgoModeSSR
+	return nil
+}
 
-	htgo.New(config)
+func Dev(engine *htgo.Engine) error {
+	err := htgo.CleanCache()
+	if err != nil {
+		return err
+	}
+
+	for _, page := range engine.Pages {
+		err := mkdirCache(page.File)
+		if err != nil {
+			return err
+		}
+
+		b := bundler{page: &page}
+
+		go b.watch()
+	}
+
+	hr := newHotReload()
+
+	go hr.watch()
+
+	engine.Router.Static(htgo.CacheDir, htgo.CacheDir)
+	engine.Router.GET("/ws", hr.websocket)
+	engine.HandleRoutes()
+
+	return nil
 }

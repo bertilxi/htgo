@@ -4,8 +4,11 @@ install:
 	cd app && npm install
 
 build:
-	GIN_MODE=release go run cmd/build/main.go
-	GIN_MODE=release CGO_ENABLED=0 GOOS=linux go build -o dist/app -a -ldflags '-extldflags "-static"' cmd/app/main.go
+	HTGO_ENV=build go run cmd/build/main.go
+	HTGO_ENV=production go build -ldflags='-s -w' -o dist/app cmd/app/main.go
+
+start:
+	HTGO_ENV=production GIN_MODE=release ./dist/app
 
 dev:
 	air \

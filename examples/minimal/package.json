@@ -1,0 +1,13 @@
+{
+  "name": "minimal",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "go run cmd/dev/main.go",
+    "build": "HTGO_ENV=build go run cmd/build/main.go && HTGO_ENV=production go build -ldflags='-s -w' -o dist/app cmd/app/main.go",
+    "start": "HTGO_ENV=production ./dist/app"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

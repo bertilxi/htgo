@@ -22,5 +22,5 @@
     }
   },
   "exclude": ["${configDir}/dist"],
-  "include": ["${configDir}/.astro/types.d.ts", "${configDir}/**/*"]
+  "include": ["${configDir}/**/*"]
 }

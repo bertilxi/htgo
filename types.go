@@ -18,7 +18,7 @@ type Link struct {
 	Href template.HTML
 }
 
-type HtmlTemplateData struct {
+type htmlTemplateData struct {
 	RenderedContent template.HTML
 	InitialProps    template.JS
 	JS              template.JS
@@ -33,45 +33,23 @@ type HtmlTemplateData struct {
 	Class           template.HTML
 }
 
-type pageMode string
-
-const (
-	PageModeJS   pageMode = "js"
-	PageModeNoJS pageMode = "nojs"
-)
-
 type Page struct {
-	Route    string
-	File     string
-	Mode     pageMode
-	Props    any
-	Title    string
-	MetaTags []MetaTag
-	Links    []Link
-	Lang     string
-	Class    string
-	Handler  func(c *gin.Context) Page
+	Route       string
+	File        string
+	Interactive bool
+	Props       any
+	Title       string
+	MetaTags    []MetaTag
+	Links       []Link
+	Lang        string
+	Class       string
+	Handler     func(c *gin.Context) Page
+	embedFS     *embed.FS
 }
 
-type mode string
-
-const (
-	ModeStatic mode = "static"
-	ModeSSR    mode = "ssr"
-)
-
-type HtgoMode struct {
-	Name       mode
-	RenderPage func(page Page) func(c *gin.Context)
-}
-
-var HtgoModeStatic = HtgoMode{
-	Name:       ModeStatic,
-	RenderPage: renderPage,
-}
-
-type SetupOptions struct {
-	Mode     *HtgoMode
+type Options struct {
+	Router   *gin.Engine
+	EmbedFS  *embed.FS
 	Title    string
 	MetaTags []MetaTag
 	Links    []Link
@@ -80,8 +58,6 @@ type SetupOptions struct {
 	Class    string
 }
 
-type HtgoConfig struct {
-	Router  *gin.Engine
-	EmbedFS *embed.FS
-	Options SetupOptions
+type Engine struct {
+	Options
 }
