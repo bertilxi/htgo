@@ -16,7 +16,7 @@ const htmlTemplate = `<!DOCTYPE html>
     <meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{.Title}}</title>
-	<link rel="stylesheet" href="{{.CSS}}" />
+	<link rel="stylesheet" href="/{{.CSS}}" />
 	{{range .MetaTags}}
 		<meta name="{{.Name}}" content="{{.Content}}" property="{{.Property}}" />
 	{{end}}
@@ -27,7 +27,7 @@ const htmlTemplate = `<!DOCTYPE html>
 <body>
     <div id="page">{{.RenderedContent}}</div>
 	{{if .Hydrate}}
-	<script type="module" src="{{.JS}}"></script>
+	<script type="module" src="/{{.JS}}"></script>
 	<script>window.PAGE_PROPS = {{.InitialProps}};</script>
 	{{end}}
 

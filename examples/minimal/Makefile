@@ -1,7 +1,9 @@
 install:
 	go mod tidy
 	go install github.com/air-verse/air@latest
-	cd app && npm install
+	npm install
+	mkdir -p .htgo
+	touch .htgo/keep
 
 build:
 	go run cmd/build/main.go
