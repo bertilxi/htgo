@@ -2,7 +2,9 @@ package cli
 
 import (
 	"os"
+	"os/signal"
 	"path"
+	"syscall"
 
 	"github.com/bertilxi/htgo"
 )
@@ -43,9 +45,21 @@ func Dev(engine *htgo.Engine) error {
 
 	go hr.watch()
 
+	// Setup signal handling for graceful shutdown
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	// Watch Go files and rebuild on changes
+	gw := newGoWatcher("cmd/dev/main.go", sigChan)
+
 	engine.Router.Static(htgo.CacheDir, htgo.CacheDir)
 	engine.Router.GET("/ws", hr.websocket)
-	engine.HandleRoutes()
 
-	return nil
+	// Start the HTTP server in a goroutine
+	go func() {
+		engine.HandleRoutes()
+	}()
+
+	// Start watching Go files (blocks until signal received)
+	return gw.watch()
 }

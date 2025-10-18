@@ -53,10 +53,11 @@ HTML String  Hydrate
    - Client bundle: ReactDOM.hydrateRoot wrapper, browser APIs enabled
    - Automatically applies Tailwind CSS transformations
 
-4. **Developer Tools** (`cli/dev.go`, `cli/hot-reload.go`):
-   - File watcher monitors components for changes
-   - WebSocket-based hot reload system
-   - Automatic browser refresh on rebuild
+4. **Developer Tools** (`cli/dev.go`, `cli/hot-reload.go`, `cli/go-watcher.go`):
+   - Go file watcher monitors `.go` files and rebuilds `cmd/dev/main.go` on changes
+   - Component bundler monitors `.tsx` and `.css` files via esbuild
+   - WebSocket-based hot reload system for browser refresh
+   - Graceful process restart via `syscall.Exec()` on Go changes
 
 ### Page Lifecycle
 
@@ -88,7 +89,6 @@ HTML String  Hydrate
 # For working with the library itself:
 cd /home/berti/Code/3lines/htgo
 go mod tidy
-go install github.com/air-verse/air@latest
 
 # For working on examples:
 cd examples/minimal  # or examples/sink
@@ -162,10 +162,17 @@ Handler: func(c *gin.Context) Page {
 
 ### Development Mode
 
-- Watched directories: all `.go` files (Go hot reload) + components (esbuild watch)
-- On change: triggers esbuild rebuild, then Go binary rebuild
-- WebSocket connection detects bundle changes and triggers browser reload
-- No page refresh for Go-only changes, full reload for bundle changes
+- **Go file watcher** (`cli/go-watcher.go`): Watches `.go` files in `cmd/`, `app/`, `pages/` directories
+  - On change: rebuilds `cmd/dev/main.go` to `tmp/bin/dev`
+  - Uses `syscall.Exec()` to gracefully replace current process with new binary
+  - Debounced to prevent rapid rebuilds (100ms)
+- **Component bundler** (`cli/bundle.go`): Watches `.tsx` and `.css` files
+  - Rebuilds `.ssr.js` (server bundle) and `.js`/`.css` (client bundles) via esbuild
+  - Output written to `.htgo/` subdirectories
+- **Hot reload watcher** (`cli/hot-reload.go`): Watches `.htgo/` output directory
+  - Detects bundle changes and broadcasts WebSocket "reload" message
+  - Browser receives message and calls `window.location.reload()`
+  - Uses `htgo.ClearBundleCache()` to ensure fresh bundles are loaded
 
 ### Production Build
 
@@ -200,8 +207,8 @@ This library does not include unit or integration tests. Examples (`minimal`, `s
 ### Dependencies
 
 - **Core**: `gin`, `quickjs-go`, `esbuild`, `fsnotify`, `gorilla/websocket`
-- **Development**: `air-verse/air` (for hot reloading)
 - Minimal dependencies by design—avoid adding unnecessary packages
+- Built-in hot reload via `cli.Dev()` eliminates need for external tools like `air`
 
 ## Troubleshooting Common Issues
 
