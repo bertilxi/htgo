@@ -220,6 +220,10 @@ const packageJsonTemplate = `{
   "dependencies": {
     "react": "^19",
     "react-dom": "^19"
+  },
+	"devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19"
   }
 }
 `

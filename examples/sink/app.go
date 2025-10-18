@@ -46,13 +46,11 @@ func NewOptions(r *gin.Engine) htgo.Options {
 				Route:       "/",
 				File:        "./app/pages/index.tsx",
 				Interactive: true,
-				Handler: func(c *gin.Context) htgo.Page {
-					return htgo.Page{
-						Props: map[string]any{
-							"route": c.FullPath(),
-							"time":  time.Now().String(),
-						},
-					}
+				Handler: func(c *gin.Context) (any, error) {
+					return map[string]any{
+						"route": c.FullPath(),
+						"time":  time.Now().String(),
+					}, nil
 				},
 			},
 			{

@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/bertilxi/htgo"
 )
@@ -23,34 +24,55 @@ func Build(engine *htgo.Engine) error {
 		return fmt.Errorf("failed to clean cache: %w", err)
 	}
 
-	failedCount := 0
+	type buildResult struct {
+		page  htgo.Page
+		err   error
+	}
+
+	resultsCh := make(chan buildResult, len(engine.Pages))
+	var wg sync.WaitGroup
+
 	for _, page := range engine.Pages {
-		page.AssignOptions(engine.Options)
+		wg.Add(1)
+		go func(p htgo.Page) {
+			defer wg.Done()
+			p.AssignOptions(engine.Options)
+			bundler := bundler{page: &p}
 
-		bundler := bundler{page: &page}
+			PrintPageBuildStart(p.Route, p.File)
 
-		PrintPageBuildStart(page.Route, page.File)
+			_, backendErr := bundler.buildBackend()
+			if backendErr != nil {
+				PrintPageBuildError(p.Route, p.File, backendErr)
+				resultsCh <- buildResult{page: p, err: backendErr}
+				return
+			}
 
-		_, backendErr := bundler.buildBackend()
-		if backendErr != nil {
-			PrintPageBuildError(page.Route, page.File, backendErr)
+			_, _, clientErr := bundler.buildClient()
+			if clientErr != nil {
+				PrintPageBuildError(p.Route, p.File, clientErr)
+				resultsCh <- buildResult{page: p, err: clientErr}
+				return
+			}
+
+			PrintPageBuildComplete(p.Route)
+			resultsCh <- buildResult{page: p, err: nil}
+		}(page)
+	}
+
+	wg.Wait()
+	close(resultsCh)
+
+	failedCount := 0
+	for result := range resultsCh {
+		if result.err != nil {
 			failedCount++
-			continue
 		}
-
-		_, _, clientErr := bundler.buildClient()
-		if clientErr != nil {
-			PrintPageBuildError(page.Route, page.File, clientErr)
-			failedCount++
-			continue
-		}
-
-		PrintPageBuildComplete(page.Route)
 	}
 
 	if failedCount > 0 {
 		PrintBuildFailed(failedCount, len(engine.Pages))
-		return fmt.Errorf("failed to build %d pages", failedCount)
+		return fmt.Errorf("failed to build %d pages", failedCount);
 	}
 
 	PrintBuildComplete(len(engine.Pages), warnings)

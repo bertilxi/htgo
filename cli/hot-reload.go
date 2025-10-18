@@ -14,15 +14,15 @@ import (
 )
 
 type hotReload struct {
-	mutex    sync.Mutex
-	ws       *websocket.Conn
-	upgrader websocket.Upgrader
+	mutex       sync.RWMutex
+	connections map[*websocket.Conn]bool
+	upgrader    websocket.Upgrader
 }
 
 func newHotReload() *hotReload {
 	return &hotReload{
-		mutex: sync.Mutex{},
-		ws:    nil,
+		mutex:       sync.RWMutex{},
+		connections: make(map[*websocket.Conn]bool),
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				return true
@@ -32,14 +32,20 @@ func newHotReload() *hotReload {
 }
 
 func (hr *hotReload) reload() {
-	if hr.ws == nil {
+	hr.mutex.RLock()
+	defer hr.mutex.RUnlock()
+
+	if len(hr.connections) == 0 {
 		return
 	}
 
-	hr.mutex.Lock()
-	defer hr.mutex.Unlock()
+	htgo.ClearBundleCache()
 
-	hr.ws.WriteMessage(1, []byte("reload"))
+	for conn := range hr.connections {
+		go func(c *websocket.Conn) {
+			c.WriteMessage(1, []byte("reload"))
+		}(conn)
+	}
 }
 
 func (hr *hotReload) watch() error {
@@ -75,11 +81,28 @@ func (hr *hotReload) watch() error {
 
 func (hr *hotReload) websocket(c *gin.Context) {
 	ws, err := hr.upgrader.Upgrade(c.Writer, c.Request, nil)
-
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	hr.ws = ws
+	hr.mutex.Lock()
+	hr.connections[ws] = true
+	hr.mutex.Unlock()
+
+	go func() {
+		defer func() {
+			hr.mutex.Lock()
+			delete(hr.connections, ws)
+			hr.mutex.Unlock()
+			ws.Close()
+		}()
+
+		for {
+			_, _, err := ws.ReadMessage()
+			if err != nil {
+				break
+			}
+		}
+	}()
 }

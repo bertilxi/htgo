@@ -18,22 +18,6 @@ type Link struct {
 	Href template.HTML
 }
 
-type htmlTemplateData struct {
-	RenderedContent template.HTML
-	InitialProps    template.JS
-	JS              template.JS
-	CSS             template.CSS
-	Title           template.HTML
-	IsDev           bool
-	Hydrate         bool
-	RouteID         string
-	MetaTags        []MetaTag
-	Links           []Link
-	Lang            template.HTML
-	Class           template.HTML
-	WebSocketPort   string
-}
-
 type Page struct {
 	Route       string
 	File        string
@@ -44,21 +28,26 @@ type Page struct {
 	Links       []Link
 	Lang        string
 	Class       string
-	Handler     func(c *gin.Context) Page
+	Handler     func(c *gin.Context) (props any, err error)
 	embedFS     *embed.FS
 	port        string
 }
 
+type ErrorHandler func(c *gin.Context, err error, page *Page)
+
 type Options struct {
-	Router   *gin.Engine
-	EmbedFS  *embed.FS
-	Title    string
-	MetaTags []MetaTag
-	Links    []Link
-	Pages    []Page
-	Lang     string
-	Class    string
-	Port     string
+	Router           *gin.Engine
+	EmbedFS          *embed.FS
+	Title            string
+	MetaTags         []MetaTag
+	Links            []Link
+	Pages            []Page
+	Lang             string
+	Class            string
+	Port             string
+	ErrorHandler     ErrorHandler
+	AssetURLPrefix   string
+	CacheBustVersion string
 }
 
 type Engine struct {
