@@ -30,7 +30,6 @@ func createProject(name string) error {
 
 	dirs := []string{
 		"pages",
-		"cmd/dev",
 		"cmd/build",
 		"cmd/app",
 		".htgo",
@@ -49,7 +48,6 @@ func createProject(name string) error {
 		filepath.Join(projectDir, ".htgo/keep"):           "",
 		filepath.Join(projectDir, ".htgo/favicon.svg"):    faviconTemplate,
 		filepath.Join(projectDir, "app.go"):              appGoTemplate,
-		filepath.Join(projectDir, "cmd/dev/main.go"):     devCmdTemplate,
 		filepath.Join(projectDir, "cmd/build/main.go"):   buildCmdTemplate,
 		filepath.Join(projectDir, "cmd/app/main.go"):     appCmdTemplate,
 		filepath.Join(projectDir, "pages/index.tsx"):     indexPageTemplate,
@@ -78,7 +76,7 @@ func createProject(name string) error {
 	fmt.Printf("  2. Install dependencies:\n")
 	fmt.Printf("     make install\n\n")
 	fmt.Printf("  3. Start development:\n")
-	fmt.Printf("     make dev\n\n")
+	fmt.Printf("     htgo dev\n\n")
 	fmt.Printf("  4. Open your browser:\n")
 	fmt.Printf("     http://localhost:8080\n\n")
 	fmt.Printf("Happy coding! 🎉\n")
@@ -108,19 +106,6 @@ var Options = htgo.Options{
 			Interactive: true,
 		},
 	},
-}
-`
-
-const devCmdTemplate = `package main
-
-import (
-	"github.com/bertilxi/htgo"
-	"github.com/bertilxi/htgo/cli"
-	app "my-app"
-)
-
-func main() {
-	cli.Dev(htgo.New(app.Options))
 }
 `
 
@@ -203,7 +188,7 @@ start:
 	HTGO_ENV=production GIN_MODE=release ./dist/app
 
 dev:
-	go run cmd/dev/main.go
+	htgo dev
 
 .PHONY: install build start dev
 `
