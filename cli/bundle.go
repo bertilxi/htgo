@@ -67,8 +67,9 @@ func getSourcemapMode() esbuild.SourceMap {
 }
 
 func (b *bundler) backendOptions() esbuild.BuildOptions {
-	pageDir := path.Dir(b.page.File)
-	pageName := path.Base(b.page.File)
+	pagePath, _ := filepath.Abs(b.page.File)
+	pageDir := filepath.Dir(pagePath)
+	pageName := filepath.Base(pagePath)
 	outfile := strings.TrimSuffix(path.Join(htgo.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".ssr.js"
 
 	return esbuild.BuildOptions{
@@ -107,8 +108,9 @@ func (b *bundler) buildBackend() (string, error) {
 }
 
 func (b *bundler) clientOptions() esbuild.BuildOptions {
-	pageDir := path.Dir(b.page.File)
-	pageName := path.Base(b.page.File)
+	pagePath, _ := filepath.Abs(b.page.File)
+	pageDir := filepath.Dir(pagePath)
+	pageName := filepath.Base(pagePath)
 	outfile := strings.TrimSuffix(path.Join(htgo.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".js"
 
 	clientOpts := esbuild.BuildOptions{

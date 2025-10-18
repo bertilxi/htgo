@@ -10,11 +10,6 @@ import (
 var EmbedFS embed.FS
 
 var Options = htgo.Options{
-	EmbedFS: &EmbedFS,
-	Pages: []htgo.Page{
-		{
-			Route: "/",
-			File:  "./pages/index.tsx",
-		},
-	},
+	EmbedFS:  &EmbedFS,
+	PagesDir: "./pages",
 }

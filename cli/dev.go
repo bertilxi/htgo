@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"path"
@@ -24,12 +25,20 @@ func Dev(engine *htgo.Engine) error {
 		return err
 	}
 
+	// Discover pages first
+	pages, err := htgo.DiscoverPages(engine.Options.PagesDir, engine.Options.Handlers)
+	if err != nil {
+		return err
+	}
+	engine.Pages = pages
+
 	// Ensure Tailwind is available before starting dev server
 	err = EnsureTailwind(engine.Pages)
 	if err != nil {
 		return err
 	}
 
+	// Create cache directories and do initial builds for all pages
 	for _, page := range engine.Pages {
 		err := mkdirCache(page.File)
 		if err != nil {
@@ -37,6 +46,19 @@ func Dev(engine *htgo.Engine) error {
 		}
 
 		b := bundler{page: &page}
+
+		// Do initial build before watching
+		fmt.Printf("📦 Building %s...\n", page.File)
+		_, err = b.buildBackend()
+		if err != nil {
+			return err
+		}
+
+		_, _, err = b.buildClient()
+		if err != nil {
+			return err
+		}
+		fmt.Printf("✓ Built bundles for %s\n", page.File)
 
 		go b.watch()
 	}

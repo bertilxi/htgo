@@ -10,8 +10,17 @@ import (
 )
 
 func (engine *Engine) HandleRoutes() {
-	for _, page := range engine.Pages {
-		engine.Router.GET(page.Route, page.render)
+	pages, err := DiscoverPages(engine.PagesDir, engine.Handlers)
+	if err != nil {
+		fmt.Printf("Error discovering pages: %v\n", err)
+		os.Exit(1)
+	}
+
+	engine.Pages = pages
+
+	for i := range engine.Pages {
+		engine.Pages[i].AssignOptions(engine.Options)
+		engine.Router.GET(engine.Pages[i].Route, engine.Pages[i].render)
 	}
 
 	port := engine.Port
@@ -53,24 +62,6 @@ func (engine *Engine) Start() {
 	engine.HandleRoutes()
 }
 
-func setupPages(options Options) []Page {
-	appPages := []Page{}
-
-	port := options.Port
-	if port == "" {
-		port = "8080"
-	}
-
-	for _, page := range options.Pages {
-		page.AssignOptions(options)
-		page.port = port
-
-		appPages = append(appPages, page)
-	}
-
-	return appPages
-}
-
 func New(options Options) *Engine {
 	if IsProd() {
 		gin.SetMode(gin.ReleaseMode)
@@ -95,7 +86,8 @@ func New(options Options) *Engine {
 			Lang:             options.Lang,
 			Class:            options.Class,
 			Port:             port,
-			Pages:            setupPages(options),
+			PagesDir:         options.PagesDir,
+			Handlers:         options.Handlers,
 			ErrorHandler:     options.ErrorHandler,
 			AssetURLPrefix:   options.AssetURLPrefix,
 			CacheBustVersion: options.CacheBustVersion,

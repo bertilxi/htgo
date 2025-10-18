@@ -15,9 +15,10 @@ var EmbedFS embed.FS
 
 func NewOptions(r *gin.Engine) htgo.Options {
 	return htgo.Options{
-		Router:  r,
-		EmbedFS: &EmbedFS,
-		Title:   "Picsel",
+		Router:   r,
+		EmbedFS:  &EmbedFS,
+		PagesDir: "./app/pages",
+		Title:    "Picsel",
 		MetaTags: []htgo.MetaTag{
 			{
 				Name:     "description",
@@ -41,21 +42,12 @@ func NewOptions(r *gin.Engine) htgo.Options {
 				Href: "/public/favicon.ico",
 			},
 		},
-		Pages: []htgo.Page{
-			{
-				Route:       "/",
-				File:        "./app/pages/index.tsx",
-				Interactive: true,
-				Handler: func(c *gin.Context) (any, error) {
-					return map[string]any{
-						"route": c.FullPath(),
-						"time":  time.Now().String(),
-					}, nil
-				},
-			},
-			{
-				Route: "/about",
-				File:  "./app/pages/about.tsx",
+		Handlers: map[string]func(c *gin.Context) (any, error){
+			"/": func(c *gin.Context) (any, error) {
+				return map[string]any{
+					"route": c.FullPath(),
+					"time":  time.Now().String(),
+				}, nil
 			},
 		},
 	}

@@ -41,8 +41,9 @@ type Options struct {
 	Title            string
 	MetaTags         []MetaTag
 	Links            []Link
-	Pages            []Page
-	Lang             string
+	PagesDir         string
+	Handlers         map[string]func(c *gin.Context) (any, error)
+	Lang              string
 	Class            string
 	Port             string
 	ErrorHandler     ErrorHandler
@@ -52,4 +53,5 @@ type Options struct {
 
 type Engine struct {
 	Options
+	Pages []Page
 }
