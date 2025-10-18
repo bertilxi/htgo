@@ -124,6 +124,14 @@ func runTailwind(inputFile string, outputFile string, minify bool) error {
 // DetectTailwind scans all pages to see if any CSS file uses Tailwind directive.
 // Returns true if Tailwind CSS is used anywhere in the project.
 func DetectTailwind(pages []htgo.Page) (bool, error) {
+	// Check root-level CSS files
+	if content, err := os.ReadFile("styles.css"); err == nil {
+		if strings.Contains(string(content), `@import "tailwindcss"`) {
+			return true, nil
+		}
+	}
+
+	// Check CSS files in page directories
 	for _, page := range pages {
 		pageDir := filepath.Dir(page.File)
 		entries, err := os.ReadDir(pageDir)
