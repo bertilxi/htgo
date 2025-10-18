@@ -1,15 +1,10 @@
-install:
-	go mod tidy
-	npm install
-	mkdir -p .htgo
-	touch .htgo/keep
-
-build:
-	go run cmd/build/main.go
-	HTGO_ENV=production go build -ldflags='-s -w' -o dist/app cmd/app/main.go
-
-start:
-	HTGO_ENV=production GIN_MODE=release ./dist/app
+.PHONY: dev build start
 
 dev:
-	go run cmd/dev/main.go
+	htgo dev
+
+build:
+	htgo build
+
+start:
+	htgo start

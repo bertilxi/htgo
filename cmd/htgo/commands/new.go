@@ -70,7 +70,7 @@ func createProject(name string) error {
 	fmt.Printf("  1. Navigate to the project:\n")
 	fmt.Printf("     cd %s\n\n", name)
 	fmt.Printf("  2. Install dependencies:\n")
-	fmt.Printf("     make install\n\n")
+	fmt.Printf("     htgo install\n\n")
 	fmt.Printf("  3. Start development:\n")
 	fmt.Printf("     htgo dev\n\n")
 	fmt.Printf("  4. Open your browser:\n")
@@ -137,22 +137,16 @@ export default function Home() {
 }
 `
 
-const makefileTemplate = `install:
-	go mod tidy
-	npm install
-	mkdir -p .htgo
-	touch .htgo/keep
+const makefileTemplate = `.PHONY: dev build start
+
+dev:
+	htgo dev
 
 build:
 	htgo build
 
 start:
 	htgo start
-
-dev:
-	htgo dev
-
-.PHONY: install build start dev
 `
 
 const packageJsonTemplate = `{

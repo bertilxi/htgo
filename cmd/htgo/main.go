@@ -24,6 +24,8 @@ func main() {
 		commands.BuildCmd(os.Args[2:])
 	case "start":
 		commands.StartCmd(os.Args[2:])
+	case "install":
+		commands.InstallCmd(os.Args[2:])
 	case "new":
 		commands.NewCmd(os.Args[2:])
 	case "version":
@@ -47,6 +49,9 @@ USAGE:
   htgo <command> [options]
 
 COMMANDS:
+  install          Install project dependencies
+                   Usage: htgo install [--dir .]
+
   dev              Start development server with hot-reload
                    Usage: htgo dev [--port 8080] [--dir .]
 
@@ -72,6 +77,9 @@ EXAMPLES:
   # Create a new project
   htgo new my-app
   cd my-app
+
+  # Install dependencies
+  htgo install
 
   # Start dev server
   htgo dev
