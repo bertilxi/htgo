@@ -22,6 +22,8 @@ func main() {
 		commands.DevCmd(os.Args[2:])
 	case "build":
 		commands.BuildCmd(os.Args[2:])
+	case "start":
+		commands.StartCmd(os.Args[2:])
 	case "new":
 		commands.NewCmd(os.Args[2:])
 	case "version":
@@ -51,6 +53,9 @@ COMMANDS:
   build            Build for production
                    Usage: htgo build [--dir .] [--output ./dist/app]
 
+  start            Run production binary
+                   Usage: htgo start [--port 8080] [--dir .]
+
   new              Create a new HTGO project
                    Usage: htgo new <project-name>
 
@@ -59,7 +64,7 @@ COMMANDS:
   help             Show this help message
 
 OPTIONS:
-  --port <number>  Port for dev server (default: 8080)
+  --port <number>  Port for server (default: 8080)
   --dir <path>     Project directory (default: current directory)
   --output <path>  Output binary path for build
 
@@ -76,6 +81,9 @@ EXAMPLES:
 
   # Build for production
   htgo build
+
+  # Run production server
+  htgo start
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `)

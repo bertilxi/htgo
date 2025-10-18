@@ -30,8 +30,6 @@ func createProject(name string) error {
 
 	dirs := []string{
 		"pages",
-		"cmd/build",
-		"cmd/app",
 		".htgo",
 	}
 
@@ -48,8 +46,6 @@ func createProject(name string) error {
 		filepath.Join(projectDir, ".htgo/keep"):           "",
 		filepath.Join(projectDir, ".htgo/favicon.svg"):    faviconTemplate,
 		filepath.Join(projectDir, "app.go"):              appGoTemplate,
-		filepath.Join(projectDir, "cmd/build/main.go"):   buildCmdTemplate,
-		filepath.Join(projectDir, "cmd/app/main.go"):     appCmdTemplate,
 		filepath.Join(projectDir, "pages/index.tsx"):     indexPageTemplate,
 		filepath.Join(projectDir, "styles.css"):          stylesCssTemplate,
 		filepath.Join(projectDir, "Makefile"):            makefileTemplate,
@@ -109,39 +105,6 @@ var Options = htgo.Options{
 }
 `
 
-const buildCmdTemplate = `package main
-
-import (
-	"github.com/bertilxi/htgo"
-	"github.com/bertilxi/htgo/cli"
-	app "my-app"
-)
-
-func main() {
-	cli.Build(htgo.New(app.Options))
-}
-`
-
-const appCmdTemplate = `package main
-
-import (
-	"embed"
-
-	"github.com/bertilxi/htgo"
-	app "my-app"
-)
-
-//go:embed .htgo/*
-var embedFS embed.FS
-
-func main() {
-	options := app.Options
-	options.EmbedFS = &embedFS
-	engine := htgo.New(options)
-	engine.Start()
-}
-`
-
 const indexPageTemplate = `import "../styles.css";
 
 export default function Home() {
@@ -181,11 +144,10 @@ const makefileTemplate = `install:
 	touch .htgo/keep
 
 build:
-	go run cmd/build/main.go
-	HTGO_ENV=production go build -ldflags='-s -w' -o dist/app cmd/app/main.go
+	htgo build
 
 start:
-	HTGO_ENV=production GIN_MODE=release ./dist/app
+	htgo start
 
 dev:
 	htgo dev

@@ -93,8 +93,8 @@ func loadEngine(dir string) (*htgo.Engine, error) {
 	}
 	defer os.Chdir(originalDir)
 
-	// Run the temporary program
-	cmd := exec.Command("go", "run", tempFile)
+	// Run the temporary program (use -mod=mod to allow running from temp directory)
+	cmd := exec.Command("go", "run", "-mod=mod", tempFile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
