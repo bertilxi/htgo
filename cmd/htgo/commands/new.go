@@ -229,6 +229,9 @@ const goModTemplate = `module my-app
 go 1.23
 
 require github.com/bertilxi/htgo v0.1.0
+
+// For local development, uncomment and update the path:
+// replace github.com/bertilxi/htgo => ../htgo
 `
 
 const stylesCssTemplate = `@import "tailwindcss";
