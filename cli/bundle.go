@@ -69,7 +69,12 @@ func (b *bundler) buildBackend() (string, error) {
 	result := esbuild.Build(b.backendOptions())
 
 	if result.Errors != nil {
-		return "", fmt.Errorf("failed to build server bundle: %v", result.Errors)
+		var errorMsg string
+		if len(result.Errors) > 0 {
+			errorMsg = result.Errors[0].Text
+		}
+		context := ExtractBuildErrorContext(errorMsg)
+		return "", fmt.Errorf("server bundle error: %s", context)
 	}
 
 	return string(result.OutputFiles[0].Contents), nil
@@ -109,7 +114,12 @@ func (b *bundler) buildClient() (string, string, error) {
 	result := esbuild.Build(b.clientOptions())
 
 	if result.Errors != nil {
-		return "", "", fmt.Errorf("failed to build client bundle: %v", result.Errors)
+		var errorMsg string
+		if len(result.Errors) > 0 {
+			errorMsg = result.Errors[0].Text
+		}
+		context := ExtractBuildErrorContext(errorMsg)
+		return "", "", fmt.Errorf("client bundle error: %s", context)
 	}
 
 	jsResult := ""
