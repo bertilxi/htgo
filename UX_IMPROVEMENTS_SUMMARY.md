@@ -138,8 +138,8 @@ let socket = new WebSocket(wsUrl);
 ```bash
 htgo new my-app
 cd my-app
-make install
-make dev
+htgo install
+htgo dev
 ```
 
 **Generated Structure:**
@@ -153,7 +153,7 @@ my-app/
 │   ├── build/main.go
 │   └── app/main.go
 ├── app.go           # Configuration
-├── Makefile         # Build targets
+#
 ├── package.json
 └── .gitignore
 ```
@@ -319,7 +319,7 @@ htgo build --dir ./myapp
 
 Next steps:
   • Run: go run cmd/app/main.go
-  • Or build binary: make build && make start
+  • Or build binary: htgo build && htgo start
 ```
 
 **UX Benefit:** Clear next steps after build
@@ -354,8 +354,8 @@ mkdir -p pages cmd/{dev,build,app}
 # One command
 htgo new my-app
 cd my-app
-make install
-make dev
+htgo install
+htgo dev
 # 30 seconds total
 ```
 
@@ -372,7 +372,7 @@ go run cmd/dev/main.go
 
 **After:**
 ```bash
-make dev
+htgo dev
 # Shows:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✓ HTGO Dev Server Ready
@@ -400,7 +400,7 @@ go run cmd/build/main.go
 
 **After:**
 ```bash
-make build
+htgo build
 # Shows:
 📦 Starting Production Build
 📄 Pages to bundle: 2
@@ -505,10 +505,10 @@ User: "I have no idea what X is or where to look"
 1. Run `htgo new my-app`
 2. See beautiful welcome page
 3. Follow on-screen instructions
-4. `make install` + `make dev`
+4. `htgo install` + `htgo dev`
 5. App runs with clear feedback
 6. Edit page, see hot-reload
-7. `make build` for production
+7. `htgo build` for production
 8. Profit!
 
 ---
@@ -569,8 +569,8 @@ User: "I have no idea what X is or where to look"
 # Get started in 30 seconds
 htgo new my-app
 cd my-app
-make install
-make dev
+htgo install
+htgo dev
 ```
 
 ### For Existing Projects

@@ -48,7 +48,6 @@ func createProject(name string) error {
 		filepath.Join(projectDir, "app.go"):              appGoTemplate,
 		filepath.Join(projectDir, "pages/index.tsx"):     indexPageTemplate,
 		filepath.Join(projectDir, "styles.css"):          stylesCssTemplate,
-		filepath.Join(projectDir, "Makefile"):            makefileTemplate,
 		filepath.Join(projectDir, "go.mod"):              goModTemplate,
 		filepath.Join(projectDir, "tsconfig.json"):       tsconfigTemplate,
 		filepath.Join(projectDir, "package.json"):        packageJsonTemplate,
@@ -67,14 +66,12 @@ func createProject(name string) error {
 	fmt.Printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
 	fmt.Printf("\n")
 	fmt.Printf("🚀 Next steps:\n\n")
-	fmt.Printf("  1. Navigate to the project:\n")
-	fmt.Printf("     cd %s\n\n", name)
-	fmt.Printf("  2. Install dependencies:\n")
-	fmt.Printf("     htgo install\n\n")
-	fmt.Printf("  3. Start development:\n")
-	fmt.Printf("     htgo dev\n\n")
-	fmt.Printf("  4. Open your browser:\n")
-	fmt.Printf("     http://localhost:8080\n\n")
+	fmt.Printf("  cd %s\n", name)
+	fmt.Printf("  htgo install     # Install dependencies\n")
+	fmt.Printf("  htgo dev         # Start development\n")
+	fmt.Printf("  htgo build       # Build for production\n")
+	fmt.Printf("  htgo start       # Run production server\n\n")
+	fmt.Printf("Open your browser at http://localhost:8080\n\n")
 	fmt.Printf("Happy coding! 🎉\n")
 	fmt.Printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
 
@@ -135,18 +132,6 @@ export default function Home() {
     </main>
   );
 }
-`
-
-const makefileTemplate = `.PHONY: dev build start
-
-dev:
-	htgo dev
-
-build:
-	htgo build
-
-start:
-	htgo start
 `
 
 const packageJsonTemplate = `{

@@ -50,7 +50,7 @@ my-app/
 │   ├── build/main.go      # Build command entry point
 │   └── app/main.go        # Production app entry point
 ├── app.go                 # Project configuration
-├── Makefile               # Build tasks
+#
 ├── package.json           # npm dependencies
 └── .gitignore             # Git ignore rules
 ```
@@ -59,8 +59,8 @@ my-app/
 ```bash
 htgo new my-app
 cd my-app
-make install
-make dev
+htgo install
+htgo dev
 ```
 
 **Generated Files:**
@@ -87,10 +87,10 @@ make dev
      cd my-app
 
   2. Install dependencies:
-     make install
+     htgo install
 
   3. Start development:
-     make dev
+     htgo dev
 
   4. Open your browser:
      http://localhost:8080
@@ -252,8 +252,8 @@ htgo new my-app
 cd my-app
 
 # Simple commands
-make install
-make dev
+htgo install
+htgo dev
 ```
 
 ### Benefits
@@ -321,10 +321,10 @@ var Options = htgo.Options{
 
 ### Makefile
 Standard targets:
-- `make install` - Install Go/npm dependencies
-- `make dev` - Start dev server with hot-reload
-- `make build` - Production build
-- `make start` - Run production binary
+- `htgo install` - Install Go/npm dependencies
+- `htgo dev` - Start dev server with hot-reload
+- `htgo build` - Production build
+- `htgo start` - Run production binary
 
 ### .gitignore
 ```

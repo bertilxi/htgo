@@ -178,7 +178,7 @@ All improvements work **automatically** with zero configuration changes needed f
 To verify everything works:
 
 1. **Test dev server feedback:**
-   - Run any example with `make dev`
+   - Run any example with `htgo dev`
    - Should see the startup banner with routes
    - Should show the port being used
 

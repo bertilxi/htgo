@@ -54,7 +54,7 @@ HTML String  Hydrate
    - Automatically applies Tailwind CSS transformations
 
 4. **Developer Tools** (`cli/dev.go`, `cli/hot-reload.go`, `cli/go-watcher.go`):
-   - Go file watcher monitors `.go` files and rebuilds `cmd/dev/main.go` on changes
+   - Go file watcher monitors `.go` and `.tsx` files and triggers hot reload
    - Component bundler monitors `.tsx` and `.css` files via esbuild
    - WebSocket-based hot reload system for browser refresh
    - Graceful process restart via `syscall.Exec()` on Go changes
@@ -92,7 +92,7 @@ go mod tidy
 
 # For working on examples:
 cd examples/minimal  # or examples/sink
-make install
+htgo install
 ```
 
 ### Running Examples
@@ -101,13 +101,13 @@ make install
 cd examples/minimal
 
 # Development with hot reload
-make dev
+htgo dev
 
 # Build for production
-make build
+htgo build
 
 # Run production binary
-make start
+htgo start
 ```
 
 ### Key Files for Different Tasks
@@ -162,8 +162,8 @@ Handler: func(c *gin.Context) Page {
 
 ### Development Mode
 
-- **Go file watcher** (`cli/go-watcher.go`): Watches `.go` files in `cmd/`, `app/`, `pages/` directories
-  - On change: rebuilds `cmd/dev/main.go` to `tmp/bin/dev`
+- **Go file watcher** (`cli/go-watcher.go`): Watches `.go` files in `.`, `cmd/`, `app/`, `pages/` directories
+  - On change: rebuilds dev binary to `tmp/bin/dev`
   - Uses `syscall.Exec()` to gracefully replace current process with new binary
   - Debounced to prevent rapid rebuilds (100ms)
 - **Component bundler** (`cli/bundle.go`): Watches `.tsx` and `.css` files
@@ -218,15 +218,15 @@ This library does not include unit or integration tests. Examples (`minimal`, `s
 | Props not appearing | Verify props are serializable to JSON; check `htmlTemplateData` in `page.go` |
 | Tailwind CSS not applying | Ensure `@import "tailwindcss"` in CSS or check `cli/tailwind.go` plugin |
 | SSR errors | Check quickjs-go console output for JavaScript runtime errors |
-| Build artifacts missing | Run `make build` first; verify `.htgo/` directory permissions |
+| Build artifacts missing | Run `htgo build` first; verify `.htgo/` directory permissions |
 
 ## Quick Reference
 
 | Task | Command |
 |------|---------|
-| Install dependencies | `make install` |
-| Start dev server | `make dev` |
-| Build production binary | `make build` |
-| Run production app | `make start` |
+| Install dependencies | `htgo install` |
+| Start dev server | `htgo dev` |
+| Build production binary | `htgo build` |
+| Run production app | `htgo start` |
 | Check for Go issues | `go vet ./...` |
 | Format code | `go fmt ./...` |

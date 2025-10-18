@@ -143,8 +143,8 @@ func PrintBuildComplete(totalPages int, warnings []string) {
 	}
 	fmt.Println()
 	fmt.Println("Next steps:")
-	fmt.Println("  • Run: go run cmd/app/main.go")
-	fmt.Println("  • Or build binary: make build && make start")
+	fmt.Println("  • Run production server: htgo start")
+	fmt.Println("  • Or run in development: htgo dev")
 	fmt.Println()
 	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 	fmt.Println()

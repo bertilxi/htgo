@@ -37,7 +37,7 @@ Before attempting to bundle pages, the build process now validates:
 ### Example Validation
 
 ```bash
-$ make build
+$ htgo build
 
 📦 Starting Production Build
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -80,7 +80,7 @@ Users now see clear progress as each page is bundled:
 
 Next steps:
   • Run: go run cmd/app/main.go
-  • Or build binary: make build && make start
+  • Or build binary: htgo build && htgo start
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -148,7 +148,7 @@ After successful builds, clear summary:
 
 Next steps:
   • Run: go run cmd/app/main.go
-  • Or build binary: make build && make start
+  • Or build binary: htgo build && htgo start
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -191,7 +191,7 @@ Now:
 ### Successful Build
 
 ```bash
-$ make build
+$ htgo build
 
 📦 Starting Production Build
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -211,7 +211,7 @@ $ make build
 
 Next steps:
   • Run: go run cmd/app/main.go
-  • Or build binary: make build && make start
+  • Or build binary: htgo build && htgo start
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -219,7 +219,7 @@ Next steps:
 ### Failed Validation
 
 ```bash
-$ make build
+$ htgo build
 
 📦 Starting Production Build
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -324,7 +324,7 @@ Works seamlessly with previous phases:
 ### Test 1: Valid Build
 ```bash
 cd examples/minimal
-make build
+htgo build
 ```
 Should show: ✓ All pages bundled successfully
 
@@ -336,11 +336,11 @@ Add invalid route to app.go:
     File: "pages/missing.tsx",
 }
 ```
-Then: `make build`
+Then: `htgo build`
 Should show: ❌ Validation error for missing file
 
 ### Test 3: Build Error
-Break component syntax in pages/index.tsx, then: `make build`
+Break component syntax in pages/index.tsx, then: `htgo build`
 Should show: Clear error message with hint about fixing syntax
 
 ---

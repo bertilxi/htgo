@@ -10,7 +10,7 @@ Fast lookup guide for HTGO features, commands, and architecture.
 Creates a new HTGO project with complete structure
 ```bash
 htgo new my-app          # Creates my-app/ with all files
-cd my-app && make dev    # Start developing
+cd my-app && htgo install && htgo dev    # Start developing
 ```
 
 ### `htgo dev`
@@ -73,12 +73,12 @@ var Options = htgo.Options{
 
 ```
 1. Create project:     htgo new my-app
-2. Install deps:       make install
-3. Start dev server:   make dev
+2. Install deps:       htgo install
+3. Start dev server:   htgo dev
 4. Edit pages:         pages/index.tsx
 5. See hot-reload:     Browser auto-refreshes
-6. Build production:   make build
-7. Run production:     make start
+6. Build production:   htgo build
+7. Run production:     htgo start
 ```
 
 ---
@@ -95,7 +95,7 @@ project/
 │   ├── build/main.go   # Build entry point
 │   └── app/main.go     # Production entry point
 ├── app.go              # Project configuration
-├── Makefile            # Build tasks
+#
 ├── package.json        # npm dependencies
 └── .gitignore          # Ignore rules
 ```
@@ -182,7 +182,7 @@ npm install --save-dev @types/lodash
 
 ## Build Output
 
-After `make build`:
+After `htgo build`:
 - Binary: `dist/app`
 - Bundles embedded: In Go binary
 - Size: Single executable (~15MB)
@@ -231,8 +231,8 @@ HTGO_ENV=production GIN_MODE=release ./dist/app
 
 ### Production Build
 ```bash
-make build     # Creates dist/app binary
-make start     # Run in production
+htgo build     # Creates dist/app binary
+htgo start     # Run in production
 ```
 
 ### Environment Variables
@@ -252,7 +252,7 @@ FROM golang:1.23
 WORKDIR /app
 COPY . .
 
-RUN make build
+RUN htgo build
 
 CMD ["./dist/app"]
 ```
@@ -287,22 +287,22 @@ CMD ["./dist/app"]
 | Action | Trigger |
 |---|---|
 | Hot reload | Save file → auto-refresh |
-| Restart server | `Ctrl+C` → `make dev` |
+| Restart server | `Ctrl+C` → `htgo dev` |
 | Clear console | `Ctrl+K` (varies by terminal) |
 
 ---
 
 ## Troubleshooting Checklist
 
-- [ ] Run `make install` to install all dependencies
+- [ ] Run `htgo install` to install all dependencies
 - [ ] Check `app.go` configuration is correct
 - [ ] Verify page files exist and are in pages/
 - [ ] Check file extensions (.tsx, not .ts)
 - [ ] Verify imports are correct
 - [ ] Look at browser console for errors
 - [ ] Check server logs for error messages
-- [ ] Try `make clean && make install`
-- [ ] Restart dev server with `Ctrl+C` + `make dev`
+- [ ] Try `htgo clean && htgo install`
+- [ ] Restart dev server with `Ctrl+C` + `htgo dev`
 
 ---
 
@@ -312,17 +312,17 @@ CMD ["./dist/app"]
 # Setup
 htgo new project
 cd project
-make install
+htgo install
 
 # Development
-make dev              # Start server
-make build            # Build for production
-make start            # Run production binary
+htgo dev              # Start server
+htgo build            # Build for production
+htgo start            # Run production binary
 
 # Cleanup
 rm -rf dist/          # Remove build artifacts
 rm -rf node_modules/  # Remove npm packages
-make clean            # Full cleanup (if defined)
+htgo clean            # Full cleanup (if defined)
 
 # Go commands
 go mod tidy           # Clean dependencies
@@ -352,7 +352,7 @@ A: Yes, via os.Getenv() in Go handlers.
 A: SSR is on by default. Set `Interactive: false` for static pages.
 
 **Q: How do I debug TypeScript errors?**
-A: Check build output. Errors show in `make build` output.
+A: Check build output. Errors show in `htgo build` output.
 
 **Q: Can I use external CSS frameworks?**
 A: Yes, Tailwind is included. Import others via npm.
