@@ -53,5 +53,7 @@ type Options struct {
 
 type Engine struct {
 	Options
-	Pages []Page
+	Pages    []Page
+	PagesDir string
+	Handlers map[string]func(c *gin.Context) (any, error)
 }

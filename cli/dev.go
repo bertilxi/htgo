@@ -67,6 +67,10 @@ func Dev(engine *htgo.Engine) error {
 
 	go hr.watch()
 
+	// Watch pages directory for new/renamed/deleted files
+	pw := newPagesWatcher(engine, hr)
+	go pw.watch()
+
 	// Setup signal handling for graceful shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)

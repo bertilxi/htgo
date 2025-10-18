@@ -20,7 +20,7 @@ func (engine *Engine) HandleRoutes() {
 
 	for i := range engine.Pages {
 		engine.Pages[i].AssignOptions(engine.Options)
-		engine.Router.GET(engine.Pages[i].Route, engine.Pages[i].render)
+		engine.Router.GET(engine.Pages[i].Route, engine.Pages[i].Render)
 	}
 
 	port := engine.Port
@@ -92,6 +92,8 @@ func New(options Options) *Engine {
 			AssetURLPrefix:   options.AssetURLPrefix,
 			CacheBustVersion: options.CacheBustVersion,
 		},
+		PagesDir: options.PagesDir,
+		Handlers: options.Handlers,
 	}
 
 	return engine

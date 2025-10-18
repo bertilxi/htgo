@@ -110,7 +110,7 @@ func getErrorHandler(page *Page) ErrorHandler {
 	return nil
 }
 
-func (p *Page) render(c *gin.Context) {
+func (p *Page) Render(c *gin.Context) {
 	errorHandler := getErrorHandler(p)
 	props := p.Props
 
