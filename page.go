@@ -2,13 +2,49 @@ package htgo
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/buke/quickjs-go"
 	"github.com/gin-gonic/gin"
 )
+
+type renderError struct {
+	step    string
+	message string
+	details string
+}
+
+func (e *renderError) Error() string {
+	msg := fmt.Sprintf("❌ Rendering failed at %s: %s", e.step, e.message)
+	if e.details != "" {
+		msg += fmt.Sprintf("\n   Details: %s", e.details)
+	}
+	return msg
+}
+
+func extractJSErrorContext(jsErr string) string {
+	jsErr = strings.TrimSpace(jsErr)
+	if strings.Contains(jsErr, "ReferenceError") {
+		return "Undefined variable or function - check imports and component exports"
+	}
+	if strings.Contains(jsErr, "TypeError") {
+		return "Type error in component - check that props match expected types"
+	}
+	if strings.Contains(jsErr, "SyntaxError") {
+		return "Syntax error in component - check TSX/JSX syntax"
+	}
+	if strings.Contains(jsErr, "Cannot read") {
+		return "Trying to access property on null/undefined - check prop values"
+	}
+	if len(jsErr) > 200 {
+		return jsErr[:200] + "..."
+	}
+	return jsErr
+}
 
 const htmlTemplate = `<!DOCTYPE html>
 <html lang="{{.Lang}}" class="{{.Class}}">
@@ -42,23 +78,25 @@ const htmlTemplate = `<!DOCTYPE html>
           }, timeout);
         };
       }
-      
+
       const reload = debounce(() => {
         console.log("reloading...");
         window.location.reload(true);
       });
-      
+
       function start() {
-        let socket = new WebSocket("ws://127.0.0.1:8080/ws");
-      
+        const wsPort = "{{.WebSocketPort}}" || window.location.port || "8080";
+        const wsUrl = "ws://" + window.location.hostname + ":" + wsPort + "/ws";
+        let socket = new WebSocket(wsUrl);
+
         socket.onmessage = reload
-      
+
         socket.onclose = () => {
           socket = null;
           setTimeout(start, 1000);
         };
       }
-      
+
       start();
 	</script>
 	{{end}}
@@ -114,6 +152,7 @@ func (page *Page) clone() Page {
 		Class:       page.Class,
 		Handler:     page.Handler,
 		embedFS:     page.embedFS,
+		port:        page.port,
 	}
 }
 
@@ -178,27 +217,60 @@ func (p *Page) render(c *gin.Context) {
 	}
 
 	jsonProps, err := json.Marshal(page.Props)
-
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		renderErr := &renderError{
+			step:    "props serialization",
+			message: "Failed to convert props to JSON",
+			details: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": renderErr.Error(),
+			"page":  page.Route,
+		})
 		return
 	}
 
 	renderedHTML, err := page.ssr(string(jsonProps))
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		details := extractJSErrorContext(err.Error())
+		renderErr := &renderError{
+			step:    "server-side rendering",
+			message: "React component rendering failed",
+			details: details,
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": renderErr.Error(),
+			"page":  page.Route,
+			"file":  page.File,
+		})
 		return
 	}
 
 	clientBundle, clientCSS, err := page.getClientJsFromFs()
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		renderErr := &renderError{
+			step:    "bundle loading",
+			message: "Client bundle files not found",
+			details: fmt.Sprintf("Expected files for: %s", page.File),
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": renderErr.Error(),
+			"page":  page.Route,
+			"file":  page.File,
+		})
 		return
 	}
 
 	tmpl, err := template.New("webpage").Parse(htmlTemplate)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		renderErr := &renderError{
+			step:    "template parsing",
+			message: "Internal template error",
+			details: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": renderErr.Error(),
+		})
 		return
 	}
 
@@ -215,14 +287,21 @@ func (p *Page) render(c *gin.Context) {
 		Lang:            template.HTML(page.Lang),
 		Class:           template.HTML(page.Class),
 		Hydrate:         page.Interactive,
+		WebSocketPort:   page.port,
 	}
 
 	c.Header("Content-Type", "text/html")
 
 	err = tmpl.Execute(c.Writer, data)
-
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		renderErr := &renderError{
+			step:    "template execution",
+			message: "Failed to render HTML",
+			details: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": renderErr.Error(),
+		})
 		return
 	}
 }

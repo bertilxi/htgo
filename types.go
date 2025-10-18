@@ -31,6 +31,7 @@ type htmlTemplateData struct {
 	Links           []Link
 	Lang            template.HTML
 	Class           template.HTML
+	WebSocketPort   string
 }
 
 type Page struct {
@@ -45,6 +46,7 @@ type Page struct {
 	Class       string
 	Handler     func(c *gin.Context) Page
 	embedFS     *embed.FS
+	port        string
 }
 
 type Options struct {
@@ -56,6 +58,7 @@ type Options struct {
 	Pages    []Page
 	Lang     string
 	Class    string
+	Port     string
 }
 
 type Engine struct {

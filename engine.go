@@ -1,6 +1,7 @@
 package htgo
 
 import (
+	"fmt"
 	"net/http"
 	"path"
 
@@ -12,7 +13,29 @@ func (engine *Engine) HandleRoutes() {
 		engine.Router.GET(page.Route, page.render)
 	}
 
-	engine.Router.Run()
+	port := engine.Port
+	if port == "" {
+		port = "8080"
+	}
+
+	if IsDev() {
+		fmt.Println()
+		fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+		fmt.Println("✓ HTGO Dev Server Ready")
+		fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+		fmt.Printf("🌐 Local:       http://localhost:%s\n", port)
+		fmt.Println()
+		fmt.Println("📄 Routes:")
+		for _, page := range engine.Pages {
+			fmt.Printf("   • %s\n", page.Route)
+		}
+		fmt.Println()
+		fmt.Println("🔄 Hot reload enabled - changes will auto-refresh")
+		fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+		fmt.Println()
+	}
+
+	engine.Router.Run(":" + port)
 }
 
 func (engine *Engine) Start() {
@@ -32,8 +55,14 @@ func (engine *Engine) Start() {
 func setupPages(options Options) []Page {
 	appPages := []Page{}
 
+	port := options.Port
+	if port == "" {
+		port = "8080"
+	}
+
 	for _, page := range options.Pages {
 		page.AssignOptions(options)
+		page.port = port
 
 		appPages = append(appPages, page)
 	}
