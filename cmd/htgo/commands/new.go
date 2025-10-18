@@ -46,16 +46,18 @@ func createProject(name string) error {
 	fmt.Printf("📝 Creating files...\n")
 
 	files := map[string]string{
-		filepath.Join(projectDir, ".htgo/keep"):               "",
-		filepath.Join(projectDir, "app.go"):                  appGoTemplate,
-		filepath.Join(projectDir, "cmd/dev/main.go"):         devCmdTemplate,
-		filepath.Join(projectDir, "cmd/build/main.go"):       buildCmdTemplate,
-		filepath.Join(projectDir, "cmd/app/main.go"):         appCmdTemplate,
-		filepath.Join(projectDir, "pages/index.tsx"):         indexPageTemplate,
-		filepath.Join(projectDir, "Makefile"):                makefileTemplate,
-		filepath.Join(projectDir, "go.mod"):                  goModTemplate,
-		filepath.Join(projectDir, "package.json"):            packageJsonTemplate,
-		filepath.Join(projectDir, ".gitignore"):              gitignoreTemplate,
+		filepath.Join(projectDir, ".htgo/keep"):        "",
+		filepath.Join(projectDir, "app.go"):            appGoTemplate,
+		filepath.Join(projectDir, "cmd/dev/main.go"):   devCmdTemplate,
+		filepath.Join(projectDir, "cmd/build/main.go"): buildCmdTemplate,
+		filepath.Join(projectDir, "cmd/app/main.go"):   appCmdTemplate,
+		filepath.Join(projectDir, "pages/index.tsx"):   indexPageTemplate,
+		filepath.Join(projectDir, "styles.css"):        stylesCssTemplate,
+		filepath.Join(projectDir, "Makefile"):          makefileTemplate,
+		filepath.Join(projectDir, "go.mod"):            goModTemplate,
+		filepath.Join(projectDir, "tsconfig.json"):     tsconfigTemplate,
+		filepath.Join(projectDir, "package.json"):      packageJsonTemplate,
+		filepath.Join(projectDir, ".gitignore"):        gitignoreTemplate,
 	}
 
 	for path, content := range files {
@@ -150,7 +152,7 @@ func main() {
 }
 `
 
-const indexPageTemplate = `import React from "react";
+const indexPageTemplate = `import "../styles.css";
 
 export default function Home() {
   return (
@@ -216,8 +218,8 @@ const packageJsonTemplate = `{
   "name": "my-htgo-app",
   "version": "0.1.0",
   "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19",
+    "react-dom": "^19"
   }
 }
 `
@@ -227,6 +229,37 @@ const goModTemplate = `module my-app
 go 1.23
 
 require github.com/bertilxi/htgo v0.1.0
+`
+
+const stylesCssTemplate = `@import "tailwindcss";
+`
+
+const tsconfigTemplate = `{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "exclude": ["dist"],
+  "include": ["./**/*"]
+}
 `
 
 const gitignoreTemplate = `.htgo/
