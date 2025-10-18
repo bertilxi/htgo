@@ -319,12 +319,12 @@ var Options = htgo.Options{
 - GitHub link
 - Fully responsive
 
-### Makefile
+### CLI Commands
 Standard targets:
 - `htgo install` - Install Go/npm dependencies
 - `htgo dev` - Start dev server with hot-reload
 - `htgo build` - Production build
-- `htgo start` - Run production binary
+- Run production: `./dist/app`
 
 ### .gitignore
 ```

@@ -78,7 +78,7 @@ var Options = htgo.Options{
 4. Edit pages:         pages/index.tsx
 5. See hot-reload:     Browser auto-refreshes
 6. Build production:   htgo build
-7. Run production:     htgo start
+7. Run production:     ./dist/app
 ```
 
 ---
@@ -187,9 +187,14 @@ After `htgo build`:
 - Bundles embedded: In Go binary
 - Size: Single executable (~15MB)
 
+Run the binary directly:
 ```bash
-HTGO_ENV=production GIN_MODE=release ./dist/app
-# Server runs on port 8080
+./dist/app
+```
+
+Optional: Override port
+```bash
+PORT=3000 ./dist/app
 ```
 
 ---
@@ -232,17 +237,18 @@ HTGO_ENV=production GIN_MODE=release ./dist/app
 ### Production Build
 ```bash
 htgo build     # Creates dist/app binary
-htgo start     # Run in production
 ```
 
-### Environment Variables
+### Running in Production
+Simply run the binary:
 ```bash
-# Production mode
-HTGO_ENV=production
-GIN_MODE=release
+./dist/app     # Runs on port 8080 by default
+```
 
-# Optional: Custom port
-PORT=3000
+### Optional Environment Variables
+```bash
+# Custom port (default: 8080)
+PORT=3000 ./dist/app
 ```
 
 ### Docker Example
@@ -252,9 +258,13 @@ FROM golang:1.23
 WORKDIR /app
 COPY . .
 
-RUN htgo build
+RUN htgo install && htgo build
 
-CMD ["./dist/app"]
+FROM alpine:latest
+WORKDIR /app
+COPY --from=0 /app/dist/app .
+
+CMD ["./app"]
 ```
 
 ---
@@ -317,12 +327,15 @@ htgo install
 # Development
 htgo dev              # Start server
 htgo build            # Build for production
-htgo start            # Run production binary
+
+# Run production binary
+./dist/app            # Runs on port 8080 by default
+PORT=3000 ./dist/app  # Custom port
 
 # Cleanup
 rm -rf dist/          # Remove build artifacts
 rm -rf node_modules/  # Remove npm packages
-htgo clean            # Full cleanup (if defined)
+rm -rf .htgo/         # Remove build cache
 
 # Go commands
 go mod tidy           # Clean dependencies

@@ -319,7 +319,7 @@ htgo build --dir ./myapp
 
 Next steps:
   • Run: go run cmd/app/main.go
-  • Or build binary: htgo build && htgo start
+  • Or build binary: htgo build && ./dist/app
 ```
 
 **UX Benefit:** Clear next steps after build

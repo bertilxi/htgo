@@ -3,6 +3,7 @@ package htgo
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"path"
 
 	"github.com/gin-gonic/gin"
@@ -79,16 +80,25 @@ func New(options Options) *Engine {
 		options.Router = gin.Default()
 	}
 
+	port := options.Port
+	if port == "" {
+		port = os.Getenv("PORT")
+	}
+
 	engine := &Engine{
 		Options: Options{
-			Router:   options.Router,
-			EmbedFS:  options.EmbedFS,
-			Title:    options.Title,
-			MetaTags: options.MetaTags,
-			Links:    options.Links,
-			Lang:     options.Lang,
-			Class:    options.Class,
-			Pages:    setupPages(options),
+			Router:           options.Router,
+			EmbedFS:          options.EmbedFS,
+			Title:            options.Title,
+			MetaTags:         options.MetaTags,
+			Links:            options.Links,
+			Lang:             options.Lang,
+			Class:            options.Class,
+			Port:             port,
+			Pages:            setupPages(options),
+			ErrorHandler:     options.ErrorHandler,
+			AssetURLPrefix:   options.AssetURLPrefix,
+			CacheBustVersion: options.CacheBustVersion,
 		},
 	}
 

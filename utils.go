@@ -16,12 +16,24 @@ const (
 	HtgoEnvProd HtgoEnv = "production"
 )
 
+var isProduction bool
+
 func IsProd() bool {
+	if isProduction {
+		return true
+	}
 	return os.Getenv("HTGO_ENV") == string(HtgoEnvProd)
 }
 
 func IsDev() bool {
+	if isProduction {
+		return false
+	}
 	return os.Getenv("HTGO_ENV") == ""
+}
+
+func SetProduction(prod bool) {
+	isProduction = prod
 }
 
 func PageCacheKey(page string, extension string) string {

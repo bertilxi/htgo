@@ -80,7 +80,7 @@ Users now see clear progress as each page is bundled:
 
 Next steps:
   • Run: go run cmd/app/main.go
-  • Or build binary: htgo build && htgo start
+  • Or build binary: htgo build && ./dist/app
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -148,7 +148,7 @@ After successful builds, clear summary:
 
 Next steps:
   • Run: go run cmd/app/main.go
-  • Or build binary: htgo build && htgo start
+  • Or build binary: htgo build && ./dist/app
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -211,7 +211,7 @@ $ htgo build
 
 Next steps:
   • Run: go run cmd/app/main.go
-  • Or build binary: htgo build && htgo start
+  • Or build binary: htgo build && ./dist/app
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```

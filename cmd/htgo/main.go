@@ -22,8 +22,6 @@ func main() {
 		commands.DevCmd(os.Args[2:])
 	case "build":
 		commands.BuildCmd(os.Args[2:])
-	case "start":
-		commands.StartCmd(os.Args[2:])
 	case "install":
 		commands.InstallCmd(os.Args[2:])
 	case "new":
@@ -58,9 +56,6 @@ COMMANDS:
   build            Build for production
                    Usage: htgo build [--dir .] [--output ./dist/app]
 
-  start            Run production binary
-                   Usage: htgo start [--port 8080] [--dir .]
-
   new              Create a new HTGO project
                    Usage: htgo new <project-name>
 
@@ -90,8 +85,8 @@ EXAMPLES:
   # Build for production
   htgo build
 
-  # Run production server
-  htgo start
+  # Run production binary
+  ./dist/app
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `)

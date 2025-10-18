@@ -157,6 +157,7 @@ import (
 )
 
 func main() {
+	htgo.SetProduction(true)
 	engine := htgo.New(app.Options)
 	engine.Start()
 }

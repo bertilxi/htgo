@@ -70,7 +70,7 @@ func createProject(name string) error {
 	fmt.Printf("  htgo install     # Install dependencies\n")
 	fmt.Printf("  htgo dev         # Start development\n")
 	fmt.Printf("  htgo build       # Build for production\n")
-	fmt.Printf("  htgo start       # Run production server\n\n")
+	fmt.Printf("  ./dist/app       # Run production binary\n\n")
 	fmt.Printf("Open your browser at http://localhost:8080\n\n")
 	fmt.Printf("Happy coding! 🎉\n")
 	fmt.Printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")

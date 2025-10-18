@@ -107,7 +107,7 @@ htgo dev
 htgo build
 
 # Run production binary
-htgo start
+./dist/app
 ```
 
 ### Key Files for Different Tasks
@@ -227,6 +227,6 @@ This library does not include unit or integration tests. Examples (`minimal`, `s
 | Install dependencies | `htgo install` |
 | Start dev server | `htgo dev` |
 | Build production binary | `htgo build` |
-| Run production app | `htgo start` |
+| Run production app | `./dist/app` |
 | Check for Go issues | `go vet ./...` |
 | Format code | `go fmt ./...` |
