@@ -16,60 +16,82 @@ import (
 
 const tailwindPath = "./.htgo-cache/tailwindcss"
 
+// Tailwind CSS support:
+// - Automatically downloads the Tailwind CLI on first build for your platform
+// - Only CSS files with @import "tailwindcss" are processed (others pass through unchanged)
+// - Server bundles exclude CSS entirely (LoaderEmpty)
+// - Client bundles include processed CSS as separate .css file
+// - In development, changes to CSS rebuild automatically
+// - In production, CSS output is minified
+//
+// Safe by design:
+// - CSS files without Tailwind directive are never modified
+// - Graceful error handling with clear messages if Tailwind processing fails
+// - Temporary files are isolated in .htgo-cache directory
+// - No configuration required - uses Tailwind v4 defaults with inline @theme/@plugin support
+
 func download(url string, path string) error {
 	out, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create tailwind binary file: %w", err)
 	}
 	defer out.Close()
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to download tailwind from %s: %w", url, err)
 	}
-
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("tailwind download failed with status %d", resp.StatusCode)
+	}
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to write tailwind binary: %w", err)
 	}
 
 	return nil
 }
 
-func tailwindUrl() string {
+func tailwindUrl() (string, error) {
 	goos := runtime.GOOS
 	arch := runtime.GOARCH
 
-	if goos == "windows" && arch == "amd64" {
-		return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-windows-x64.exe"
+	switch {
+	case goos == "windows" && arch == "amd64":
+		return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-windows-x64.exe", nil
+	case goos == "linux" && arch == "arm64":
+		return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-arm64", nil
+	case goos == "linux" && arch == "amd64":
+		return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64", nil
+	case goos == "darwin" && arch == "arm64":
+		return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-arm64", nil
+	case goos == "darwin" && arch == "amd64":
+		return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-x64", nil
+	default:
+		return "", fmt.Errorf("unsupported platform: %s/%s", goos, arch)
 	}
-	if goos == "linux" && arch == "arm64" {
-		return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-arm64"
-	}
-	if goos == "linux" && arch == "amd64" {
-		return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64"
-	}
-	if goos == "darwin" && arch == "arm64" {
-		return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-arm64"
-	}
-	if goos == "darwin" && arch == "amd64" {
-		return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-x64"
-	}
-
-	return "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-arm64"
 }
 
 func getTailwindPath() (string, error) {
 	if _, err := os.Stat(tailwindPath); os.IsNotExist(err) {
-		os.MkdirAll("./.htgo-cache", 0755)
-		fmt.Println("downloading tailwind")
-		err = download(tailwindUrl(), tailwindPath)
+		if err := os.MkdirAll("./.htgo-cache", 0755); err != nil {
+			return "", fmt.Errorf("failed to create cache directory: %w", err)
+		}
+
+		url, err := tailwindUrl()
 		if err != nil {
 			return "", err
 		}
-		fmt.Println("tailwind downloaded")
+
+		fmt.Println("downloading tailwind...")
+		err = download(url, tailwindPath)
+		if err != nil {
+			return "", err
+		}
+		fmt.Println("tailwind downloaded successfully")
 	}
 
 	return tailwindPath, nil
@@ -77,9 +99,8 @@ func getTailwindPath() (string, error) {
 
 func runTailwind(inputFile string, outputFile string, minify bool) error {
 	cmdPath, err := getTailwindPath()
-
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get tailwind path: %w", err)
 	}
 
 	args := []string{
@@ -92,10 +113,59 @@ func runTailwind(inputFile string, outputFile string, minify bool) error {
 	}
 
 	cmd := exec.Command(cmdPath, args...)
-
-	_, err = cmd.Output()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return err
+		return fmt.Errorf("tailwind processing failed: %w\noutput: %s", err, string(output))
+	}
+
+	return nil
+}
+
+// DetectTailwind scans all pages to see if any CSS file uses Tailwind directive.
+// Returns true if Tailwind CSS is used anywhere in the project.
+func DetectTailwind(pages []htgo.Page) (bool, error) {
+	for _, page := range pages {
+		pageDir := filepath.Dir(page.File)
+		entries, err := os.ReadDir(pageDir)
+		if err != nil {
+			continue
+		}
+
+		for _, entry := range entries {
+			if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".css") {
+				continue
+			}
+
+			cssPath := filepath.Join(pageDir, entry.Name())
+			content, err := os.ReadFile(cssPath)
+			if err != nil {
+				continue
+			}
+
+			if strings.Contains(string(content), `@import "tailwindcss"`) {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
+// EnsureTailwind detects if Tailwind is used and pre-downloads the CLI if needed.
+// This is called before serving any pages to avoid lazy downloads during requests.
+func EnsureTailwind(pages []htgo.Page) error {
+	usesTailwind, err := DetectTailwind(pages)
+	if err != nil {
+		return fmt.Errorf("failed to detect tailwind usage: %w", err)
+	}
+
+	if !usesTailwind {
+		return nil
+	}
+
+	_, err = getTailwindPath()
+	if err != nil {
+		return fmt.Errorf("failed to ensure tailwind is available: %w", err)
 	}
 
 	return nil
@@ -105,8 +175,6 @@ func newTailwindPlugin(shouldMinify bool) api.Plugin {
 	return api.Plugin{
 		Name: "tailwind",
 		Setup: func(b api.PluginBuild) {
-			tmpFiles := []string{}
-
 			b.OnResolve(api.OnResolveOptions{
 				Filter:    `.\.(css)$`,
 				Namespace: "file",
@@ -114,23 +182,31 @@ func newTailwindPlugin(shouldMinify bool) api.Plugin {
 				sourceFullPath := filepath.Join(args.ResolveDir, args.Path)
 				source, err := os.ReadFile(sourceFullPath)
 				if err != nil {
-					return api.OnResolveResult{Path: sourceFullPath}, err
+					return api.OnResolveResult{Path: sourceFullPath}, fmt.Errorf("failed to read CSS file %s: %w", sourceFullPath, err)
 				}
 
-				if !strings.Contains(string(source), `@import "tailwindcss"`) {
+				hasTailwind := strings.Contains(string(source), `@import "tailwindcss"`)
+				if !hasTailwind {
 					return api.OnResolveResult{Path: sourceFullPath}, nil
 				}
 
-				cwd, _ := os.Getwd()
+				cwd, err := os.Getwd()
+				if err != nil {
+					return api.OnResolveResult{Path: sourceFullPath}, fmt.Errorf("failed to get working directory: %w", err)
+				}
+
 				tmpFilePath := filepath.Join(
 					cwd,
 					htgo.CacheDir,
 					strings.ReplaceAll(strings.ReplaceAll(sourceFullPath, ".css", ""), cwd, "")+".tmp.css",
 				)
-				tmpFiles = append(tmpFiles, tmpFilePath)
-				err = runTailwind(sourceFullPath, tmpFilePath, shouldMinify)
 
-				return api.OnResolveResult{Path: tmpFilePath}, err
+				err = runTailwind(sourceFullPath, tmpFilePath, shouldMinify)
+				if err != nil {
+					return api.OnResolveResult{Path: sourceFullPath}, fmt.Errorf("tailwind plugin error for %s: %w", sourceFullPath, err)
+				}
+
+				return api.OnResolveResult{Path: tmpFilePath}, nil
 			})
 		},
 	}

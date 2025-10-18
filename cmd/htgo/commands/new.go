@@ -46,18 +46,19 @@ func createProject(name string) error {
 	fmt.Printf("📝 Creating files...\n")
 
 	files := map[string]string{
-		filepath.Join(projectDir, ".htgo/keep"):        "",
-		filepath.Join(projectDir, "app.go"):            appGoTemplate,
-		filepath.Join(projectDir, "cmd/dev/main.go"):   devCmdTemplate,
-		filepath.Join(projectDir, "cmd/build/main.go"): buildCmdTemplate,
-		filepath.Join(projectDir, "cmd/app/main.go"):   appCmdTemplate,
-		filepath.Join(projectDir, "pages/index.tsx"):   indexPageTemplate,
-		filepath.Join(projectDir, "styles.css"):        stylesCssTemplate,
-		filepath.Join(projectDir, "Makefile"):          makefileTemplate,
-		filepath.Join(projectDir, "go.mod"):            goModTemplate,
-		filepath.Join(projectDir, "tsconfig.json"):     tsconfigTemplate,
-		filepath.Join(projectDir, "package.json"):      packageJsonTemplate,
-		filepath.Join(projectDir, ".gitignore"):        gitignoreTemplate,
+		filepath.Join(projectDir, ".htgo/keep"):           "",
+		filepath.Join(projectDir, ".htgo/favicon.svg"):    faviconTemplate,
+		filepath.Join(projectDir, "app.go"):              appGoTemplate,
+		filepath.Join(projectDir, "cmd/dev/main.go"):     devCmdTemplate,
+		filepath.Join(projectDir, "cmd/build/main.go"):   buildCmdTemplate,
+		filepath.Join(projectDir, "cmd/app/main.go"):     appCmdTemplate,
+		filepath.Join(projectDir, "pages/index.tsx"):     indexPageTemplate,
+		filepath.Join(projectDir, "styles.css"):          stylesCssTemplate,
+		filepath.Join(projectDir, "Makefile"):            makefileTemplate,
+		filepath.Join(projectDir, "go.mod"):              goModTemplate,
+		filepath.Join(projectDir, "tsconfig.json"):       tsconfigTemplate,
+		filepath.Join(projectDir, "package.json"):        packageJsonTemplate,
+		filepath.Join(projectDir, ".gitignore"):          gitignoreTemplate,
 	}
 
 	for path, content := range files {
@@ -89,13 +90,17 @@ func createProject(name string) error {
 const appGoTemplate = `package app
 
 import (
+	"embed"
+
 	"github.com/bertilxi/htgo"
-	"github.com/gin-gonic/gin"
 )
 
+//go:embed .htgo
+var EmbedFS embed.FS
+
 var Options = htgo.Options{
-	Router: gin.Default(),
-	Title:  "My HTGO App",
+	EmbedFS: &EmbedFS,
+	Title:   "My HTGO App",
 	Pages: []htgo.Page{
 		{
 			Route:       "/",
@@ -280,3 +285,5 @@ node_modules/
 .DS_Store
 go.sum
 `
+
+const faviconTemplate = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><path fill="#553986" d="M26 31h4v4h-4zM6 31h4v4H6zm24-21h-2V8h-2V6h-3V2h-2v4h-6V2h-2v4h-3v2H8v2H6v7H2v2h4v7h4v5h5v-5h6v5h5v-5h4v-7h4v-2h-4v-7zM16 21h-4v-8h4v8zm4 0v-8h4v8h-4zM34 6h2v11h-2zM0 6h2v11H0z"/></svg>`

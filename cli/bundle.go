@@ -85,22 +85,19 @@ func (b *bundler) clientOptions() esbuild.BuildOptions {
 	pageName := path.Base(b.page.File)
 	outfile := strings.TrimSuffix(path.Join(htgo.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".js"
 
-	return esbuild.BuildOptions{
+	clientOpts := esbuild.BuildOptions{
 		Outfile: outfile,
 		Stdin: &esbuild.StdinOptions{
 			ResolveDir: pageDir,
 			Loader:     esbuild.LoaderTSX,
 			Contents:   strings.ReplaceAll(clientEntry, "$page", pageName),
 		},
-		Format:   esbuild.FormatESModule,
-		Platform: esbuild.PlatformBrowser,
-		Target:   esbuild.ES2020,
+		Format:            esbuild.FormatESModule,
+		Platform:          esbuild.PlatformBrowser,
+		Target:            esbuild.ES2020,
 		Loader: map[string]esbuild.Loader{
 			".tsx": esbuild.LoaderTSX,
 			".css": esbuild.LoaderCSS,
-		},
-		Plugins: []esbuild.Plugin{
-			newTailwindPlugin(htgo.IsProd()),
 		},
 		Bundle:            true,
 		Write:             true,
@@ -108,6 +105,12 @@ func (b *bundler) clientOptions() esbuild.BuildOptions {
 		MinifyIdentifiers: htgo.IsProd(),
 		MinifySyntax:      htgo.IsProd(),
 	}
+
+	clientOpts.Plugins = []esbuild.Plugin{
+		newTailwindPlugin(htgo.IsProd()),
+	}
+
+	return clientOpts
 }
 
 func (b *bundler) buildClient() (string, string, error) {
@@ -129,10 +132,13 @@ func (b *bundler) buildClient() (string, string, error) {
 		if strings.HasSuffix(file.Path, ".js") {
 			jsResult = string(file.Contents)
 		}
-
 		if strings.HasSuffix(file.Path, ".css") {
 			cssResult = string(file.Contents)
 		}
+	}
+
+	if jsResult == "" {
+		return "", "", fmt.Errorf("client bundle error: no JavaScript output generated")
 	}
 
 	return jsResult, cssResult, nil

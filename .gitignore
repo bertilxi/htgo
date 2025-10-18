@@ -3,3 +3,4 @@ node_modules/
 .htgo-cache/
 dist/
 main
+htgo

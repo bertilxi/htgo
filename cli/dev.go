@@ -22,6 +22,12 @@ func Dev(engine *htgo.Engine) error {
 		return err
 	}
 
+	// Ensure Tailwind is available before starting dev server
+	err = EnsureTailwind(engine.Pages)
+	if err != nil {
+		return err
+	}
+
 	for _, page := range engine.Pages {
 		err := mkdirCache(page.File)
 		if err != nil {

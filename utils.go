@@ -31,19 +31,25 @@ func PageCacheKey(page string, extension string) string {
 }
 
 func CleanCache() error {
-	err := os.RemoveAll(CacheDir)
+	entries, err := os.ReadDir(CacheDir)
 	if err != nil {
+		if os.IsNotExist(err) {
+			err := os.MkdirAll(CacheDir, 0755)
+			if err != nil {
+				return err
+			}
+			return os.WriteFile(path.Join(CacheDir, "keep"), []byte(""), 0644)
+		}
 		return err
 	}
 
-	err = os.MkdirAll(CacheDir, 0755)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(path.Join(CacheDir, "keep"), []byte(""), 0644)
-	if err != nil {
-		return err
+	for _, entry := range entries {
+		if entry.Name() != "favicon.svg" && entry.Name() != "keep" {
+			err := os.RemoveAll(path.Join(CacheDir, entry.Name()))
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

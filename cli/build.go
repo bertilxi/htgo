@@ -13,13 +13,19 @@ func Build(engine *htgo.Engine) error {
 
 	PrintBuildStart(engine)
 
+	// Ensure Tailwind is available before building pages
+	err := EnsureTailwind(engine.Pages)
+	if err != nil {
+		return err
+	}
+
 	validationErrors, warnings := ValidatePages(engine)
 	if err := PrintValidationResults(validationErrors, warnings); err != nil {
 		PrintBuildFailed(len(validationErrors), len(engine.Pages))
 		return err
 	}
 
-	err := htgo.CleanCache()
+	err = htgo.CleanCache()
 	if err != nil {
 		return fmt.Errorf("failed to clean cache: %w", err)
 	}

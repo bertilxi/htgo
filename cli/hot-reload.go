@@ -15,14 +15,14 @@ import (
 
 type hotReload struct {
 	mutex       sync.RWMutex
-	connections map[*websocket.Conn]bool
+	connections map[*websocket.Conn]*sync.Mutex
 	upgrader    websocket.Upgrader
 }
 
 func newHotReload() *hotReload {
 	return &hotReload{
 		mutex:       sync.RWMutex{},
-		connections: make(map[*websocket.Conn]bool),
+		connections: make(map[*websocket.Conn]*sync.Mutex),
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				return true
@@ -41,10 +41,12 @@ func (hr *hotReload) reload() {
 
 	htgo.ClearBundleCache()
 
-	for conn := range hr.connections {
-		go func(c *websocket.Conn) {
+	for conn, writeMutex := range hr.connections {
+		go func(c *websocket.Conn, m *sync.Mutex) {
+			m.Lock()
+			defer m.Unlock()
 			c.WriteMessage(1, []byte("reload"))
-		}(conn)
+		}(conn, writeMutex)
 	}
 }
 
@@ -86,8 +88,10 @@ func (hr *hotReload) websocket(c *gin.Context) {
 		return
 	}
 
+	writeMutex := &sync.Mutex{}
+
 	hr.mutex.Lock()
-	hr.connections[ws] = true
+	hr.connections[ws] = writeMutex
 	hr.mutex.Unlock()
 
 	go func() {
