@@ -42,7 +42,7 @@ type Options struct {
 	MetaTags         []MetaTag
 	Links            []Link
 	PagesDir         string
-	Handlers         map[string]func(c *gin.Context) (any, error)
+	Loaders          map[string]func(c *gin.Context) (any, error)
 	Lang              string
 	Class            string
 	Port             string
@@ -53,7 +53,6 @@ type Options struct {
 
 type Engine struct {
 	Options
-	Pages    []Page
-	PagesDir string
-	Handlers map[string]func(c *gin.Context) (any, error)
+	Pages   []Page
+	Loaders map[string]func(c *gin.Context) (any, error)
 }

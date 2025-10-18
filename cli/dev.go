@@ -26,7 +26,7 @@ func Dev(engine *htgo.Engine) error {
 	}
 
 	// Discover pages first
-	pages, err := htgo.DiscoverPages(engine.Options.PagesDir, engine.Options.Handlers)
+	pages, err := htgo.DiscoverPages(engine.Options.PagesDir, engine.Options.Loaders)
 	if err != nil {
 		return err
 	}

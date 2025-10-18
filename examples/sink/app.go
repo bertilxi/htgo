@@ -3,9 +3,9 @@ package app
 import (
 	"embed"
 	"net/http"
-	"time"
 
 	"github.com/bertilxi/htgo"
+	"github.com/bertilxi/htgo/examples/sink/app/pages"
 	"github.com/bertilxi/htgo/examples/sink/app/public"
 	"github.com/gin-gonic/gin"
 )
@@ -42,13 +42,9 @@ func NewOptions(r *gin.Engine) htgo.Options {
 				Href: "/public/favicon.ico",
 			},
 		},
-		Handlers: map[string]func(c *gin.Context) (any, error){
-			"/": func(c *gin.Context) (any, error) {
-				return map[string]any{
-					"route": c.FullPath(),
-					"time":  time.Now().String(),
-				}, nil
-			},
+		Loaders: map[string]func(c *gin.Context) (any, error){
+			"/":      pages.LoadIndex,
+			"/about": pages.LoadAbout,
 		},
 	}
 }

@@ -10,7 +10,7 @@ import (
 )
 
 func (engine *Engine) HandleRoutes() {
-	pages, err := DiscoverPages(engine.PagesDir, engine.Handlers)
+	pages, err := DiscoverPages(engine.PagesDir, engine.Loaders)
 	if err != nil {
 		fmt.Printf("Error discovering pages: %v\n", err)
 		os.Exit(1)
@@ -87,13 +87,12 @@ func New(options Options) *Engine {
 			Class:            options.Class,
 			Port:             port,
 			PagesDir:         options.PagesDir,
-			Handlers:         options.Handlers,
+			Loaders:          options.Loaders,
 			ErrorHandler:     options.ErrorHandler,
 			AssetURLPrefix:   options.AssetURLPrefix,
 			CacheBustVersion: options.CacheBustVersion,
 		},
-		PagesDir: options.PagesDir,
-		Handlers: options.Handlers,
+		Loaders: options.Loaders,
 	}
 
 	return engine

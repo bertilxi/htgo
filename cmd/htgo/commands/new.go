@@ -50,6 +50,7 @@ func createProject(name string) error {
 		filepath.Join(projectDir, ".htgo/favicon.svg"):    faviconTemplate,
 		filepath.Join(projectDir, "app.go"):              appGoTemplate,
 		filepath.Join(projectDir, "pages/index.tsx"):     indexPageTemplate,
+		filepath.Join(projectDir, "pages/index.go"):      indexLoaderTemplate,
 		filepath.Join(projectDir, "styles.css"):          stylesCssTemplate,
 		filepath.Join(projectDir, "go.mod"):              goModTemplate,
 		filepath.Join(projectDir, "tsconfig.json"):       tsconfigTemplate,
@@ -90,6 +91,8 @@ import (
 	"embed"
 
 	"github.com/bertilxi/htgo"
+	"github.com/gin-gonic/gin"
+	"my-app/pages"
 )
 
 //go:embed .htgo
@@ -99,12 +102,34 @@ var Options = htgo.Options{
 	EmbedFS:  &EmbedFS,
 	PagesDir: "./pages",
 	Title:    "My HTGO App",
+	Loaders: map[string]func(c *gin.Context) (any, error){
+		"/": pages.LoadIndex,
+	},
+}
+`
+
+const indexLoaderTemplate = `package pages
+
+import (
+	"github.com/gin-gonic/gin"
+)
+
+// LoadIndex provides server-side data to pages/index.tsx
+// This function is registered in app.go via the Loaders map
+func LoadIndex(c *gin.Context) (any, error) {
+	return map[string]any{
+		"message": "Hello from HTGO! 🚀",
+	}, nil
 }
 `
 
 const indexPageTemplate = `import "../styles.css";
 
-export default function Home() {
+interface Props {
+  message: string;
+}
+
+export default function Home(props: Props) {
   return (
     <main>
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -112,7 +137,7 @@ export default function Home() {
           Welcome to HTGO
         </h1>
         <p className="text-xl text-gray-600 mb-8">
-          React SSR for Go 🚀
+          {props.message}
         </p>
         <div className="space-x-4">
           <a

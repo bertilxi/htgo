@@ -50,6 +50,10 @@ const htmlTemplate = `<!DOCTYPE html>
 
 	{{if .IsDev}}
 	<script>
+      let reconnectAttempts = 0;
+      let reconnectDelay = 500;
+      const maxReconnectDelay = 5000;
+
       function debounce(func, timeout = 500) {
         let timer;
         return (...args) => {
@@ -65,16 +69,35 @@ const htmlTemplate = `<!DOCTYPE html>
         window.location.reload(true);
       });
 
+      let isFirstConnection = true;
+
       function start() {
         const wsPort = "{{.WebSocketPort}}" || window.location.port || "8080";
         const wsUrl = "ws://" + window.location.hostname + ":" + wsPort + "/ws";
         let socket = new WebSocket(wsUrl);
 
-        socket.onmessage = reload
+        socket.onopen = () => {
+          // If reconnecting after a disconnect, reload the page
+          if (reconnectAttempts > 0) {
+            console.log("reconnected, reloading...");
+            reload();
+          }
+          reconnectAttempts = 0;
+          reconnectDelay = 500;
+          isFirstConnection = false;
+        };
+
+        socket.onmessage = reload;
+
+        socket.onerror = () => {
+          socket.close();
+        };
 
         socket.onclose = () => {
           socket = null;
-          setTimeout(start, 1000);
+          reconnectAttempts++;
+          const delay = Math.min(reconnectDelay * Math.pow(1.5, reconnectAttempts), maxReconnectDelay);
+          setTimeout(start, delay);
         };
       }
 

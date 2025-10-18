@@ -50,7 +50,7 @@ func (pw *pagesWatcher) isTsxFile(path string) bool {
 }
 
 func (pw *pagesWatcher) processPageChanges() error {
-	newPages, err := htgo.DiscoverPages(pw.pagesDir, pw.engine.Handlers)
+	newPages, err := htgo.DiscoverPages(pw.pagesDir, pw.engine.Loaders)
 	if err != nil {
 		fmt.Printf("❌ Failed to discover pages: %v\n", err)
 		return err
@@ -186,6 +186,9 @@ func (pw *pagesWatcher) watch() error {
 					}
 				}
 			}
+
+			// .go loader files are handled by the Go watcher, which triggers a rebuild
+			// The rebuild will include the updated loader, and hot reload will happen automatically
 
 		case err, ok := <-watcher.Errors:
 			if !ok {
