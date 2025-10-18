@@ -53,6 +53,7 @@ func createProject(name string) error {
 		filepath.Join(projectDir, "cmd/app/main.go"):         appCmdTemplate,
 		filepath.Join(projectDir, "pages/index.tsx"):         indexPageTemplate,
 		filepath.Join(projectDir, "Makefile"):                makefileTemplate,
+		filepath.Join(projectDir, "go.mod"):                  goModTemplate,
 		filepath.Join(projectDir, "package.json"):            packageJsonTemplate,
 		filepath.Join(projectDir, ".gitignore"):              gitignoreTemplate,
 	}
@@ -83,7 +84,7 @@ func createProject(name string) error {
 	return nil
 }
 
-const appGoTemplate = `package main
+const appGoTemplate = `package app
 
 import (
 	"github.com/bertilxi/htgo"
@@ -108,11 +109,11 @@ const devCmdTemplate = `package main
 import (
 	"github.com/bertilxi/htgo"
 	"github.com/bertilxi/htgo/cli"
+	app "my-app"
 )
 
 func main() {
-	engine := htgo.New(Options)
-	cli.Dev(engine)
+	cli.Dev(htgo.New(app.Options))
 }
 `
 
@@ -121,11 +122,11 @@ const buildCmdTemplate = `package main
 import (
 	"github.com/bertilxi/htgo"
 	"github.com/bertilxi/htgo/cli"
+	app "my-app"
 )
 
 func main() {
-	engine := htgo.New(Options)
-	cli.Build(engine)
+	cli.Build(htgo.New(app.Options))
 }
 `
 
@@ -135,13 +136,14 @@ import (
 	"embed"
 
 	"github.com/bertilxi/htgo"
+	app "my-app"
 )
 
 //go:embed .htgo/*
 var embedFS embed.FS
 
 func main() {
-	options := Options
+	options := app.Options
 	options.EmbedFS = &embedFS
 	engine := htgo.New(options)
 	engine.Start()
@@ -213,9 +215,18 @@ dev:
 const packageJsonTemplate = `{
   "name": "my-htgo-app",
   "version": "0.1.0",
-  "devDependencies": {},
-  "dependencies": {}
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
 }
+`
+
+const goModTemplate = `module my-app
+
+go 1.23
+
+require github.com/bertilxi/htgo v0.1.0
 `
 
 const gitignoreTemplate = `.htgo/
