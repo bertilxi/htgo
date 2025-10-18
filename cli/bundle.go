@@ -35,6 +35,37 @@ type bundler struct {
 	page *htgo.Page
 }
 
+func formatBuildErrors(errors []esbuild.Message) string {
+	if len(errors) == 0 {
+		return "unknown error"
+	}
+	if len(errors) == 1 {
+		return errors[0].Text
+	}
+	errorText := fmt.Sprintf("%d errors:\n", len(errors))
+	for i, err := range errors {
+		errorText += fmt.Sprintf("%d. %s\n", i+1, err.Text)
+	}
+	return errorText
+}
+
+var serverLoaderMap = map[string]esbuild.Loader{
+	".tsx": esbuild.LoaderTSX,
+	".css": esbuild.LoaderEmpty, // Server bundles don't use CSS
+}
+
+var clientLoaderMap = map[string]esbuild.Loader{
+	".tsx": esbuild.LoaderTSX,
+	".css": esbuild.LoaderCSS, // Client bundles process CSS
+}
+
+func getSourcemapMode() esbuild.SourceMap {
+	if htgo.IsProd() {
+		return esbuild.SourceMapNone
+	}
+	return esbuild.SourceMapLinked
+}
+
 func (b *bundler) backendOptions() esbuild.BuildOptions {
 	pageDir := path.Dir(b.page.File)
 	pageName := path.Base(b.page.File)
@@ -48,31 +79,26 @@ func (b *bundler) backendOptions() esbuild.BuildOptions {
 			Contents:   strings.ReplaceAll(serverEntry, "$page", pageName),
 		},
 		Format:   esbuild.FormatESModule,
-		Platform: esbuild.PlatformBrowser,
+		Platform: esbuild.PlatformBrowser, // quickjs-go environment requires browser platform for proper tree-shaking
 		Target:   esbuild.ES2020,
 		Banner: map[string]string{
 			"js": textEncoderPolyfill + consolePolyfill,
 		},
-		Loader: map[string]esbuild.Loader{
-			".tsx": esbuild.LoaderTSX,
-			".css": esbuild.LoaderEmpty,
-		},
+		Loader:            serverLoaderMap,
 		Bundle:            true,
 		Write:             true,
 		MinifyWhitespace:  htgo.IsProd(),
 		MinifyIdentifiers: htgo.IsProd(),
 		MinifySyntax:      htgo.IsProd(),
+		Sourcemap:         getSourcemapMode(),
 	}
 }
 
 func (b *bundler) buildBackend() (string, error) {
 	result := esbuild.Build(b.backendOptions())
 
-	if result.Errors != nil {
-		var errorMsg string
-		if len(result.Errors) > 0 {
-			errorMsg = result.Errors[0].Text
-		}
+	if result.Errors != nil && len(result.Errors) > 0 {
+		errorMsg := formatBuildErrors(result.Errors)
 		context := ExtractBuildErrorContext(errorMsg)
 		return "", fmt.Errorf("server bundle error: %s", context)
 	}
@@ -95,19 +121,16 @@ func (b *bundler) clientOptions() esbuild.BuildOptions {
 		Format:            esbuild.FormatESModule,
 		Platform:          esbuild.PlatformBrowser,
 		Target:            esbuild.ES2020,
-		Loader: map[string]esbuild.Loader{
-			".tsx": esbuild.LoaderTSX,
-			".css": esbuild.LoaderCSS,
-		},
+		Loader:            clientLoaderMap,
 		Bundle:            true,
 		Write:             true,
 		MinifyWhitespace:  htgo.IsProd(),
 		MinifyIdentifiers: htgo.IsProd(),
 		MinifySyntax:      htgo.IsProd(),
-	}
-
-	clientOpts.Plugins = []esbuild.Plugin{
-		newTailwindPlugin(htgo.IsProd()),
+		Sourcemap:         getSourcemapMode(),
+		Plugins: []esbuild.Plugin{
+			newTailwindPlugin(htgo.IsProd(), false), // disable caching in dev for hot reload
+		},
 	}
 
 	return clientOpts
@@ -116,11 +139,8 @@ func (b *bundler) clientOptions() esbuild.BuildOptions {
 func (b *bundler) buildClient() (string, string, error) {
 	result := esbuild.Build(b.clientOptions())
 
-	if result.Errors != nil {
-		var errorMsg string
-		if len(result.Errors) > 0 {
-			errorMsg = result.Errors[0].Text
-		}
+	if result.Errors != nil && len(result.Errors) > 0 {
+		errorMsg := formatBuildErrors(result.Errors)
 		context := ExtractBuildErrorContext(errorMsg)
 		return "", "", fmt.Errorf("client bundle error: %s", context)
 	}

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/bertilxi/htgo"
 	"github.com/evanw/esbuild/pkg/api"
@@ -179,7 +180,14 @@ func EnsureTailwind(pages []htgo.Page) error {
 	return nil
 }
 
-func newTailwindPlugin(shouldMinify bool) api.Plugin {
+func newTailwindPlugin(shouldMinify bool, enableCache bool) api.Plugin {
+	type cacheEntry struct {
+		outputPath string
+		modTime    int64
+	}
+	processingCache := make(map[string]cacheEntry)
+	cacheMutex := sync.Mutex{}
+
 	return api.Plugin{
 		Name: "tailwind",
 		Setup: func(b api.PluginBuild) {
@@ -198,6 +206,22 @@ func newTailwindPlugin(shouldMinify bool) api.Plugin {
 					return api.OnResolveResult{Path: sourceFullPath}, nil
 				}
 
+				// Check file modification time
+				info, err := os.Stat(sourceFullPath)
+				if err != nil {
+					return api.OnResolveResult{Path: sourceFullPath}, fmt.Errorf("failed to stat CSS file %s: %w", sourceFullPath, err)
+				}
+				currentModTime := info.ModTime().Unix()
+
+				cacheMutex.Lock()
+				cachedEntry, exists := processingCache[sourceFullPath]
+				cacheMutex.Unlock()
+
+				// Use cache only if enabled and file hasn't been modified
+				if enableCache && exists && cachedEntry.modTime == currentModTime {
+					return api.OnResolveResult{Path: cachedEntry.outputPath}, nil
+				}
+
 				cwd, err := os.Getwd()
 				if err != nil {
 					return api.OnResolveResult{Path: sourceFullPath}, fmt.Errorf("failed to get working directory: %w", err)
@@ -213,6 +237,13 @@ func newTailwindPlugin(shouldMinify bool) api.Plugin {
 				if err != nil {
 					return api.OnResolveResult{Path: sourceFullPath}, fmt.Errorf("tailwind plugin error for %s: %w", sourceFullPath, err)
 				}
+
+				cacheMutex.Lock()
+				processingCache[sourceFullPath] = cacheEntry{
+					outputPath: tmpFilePath,
+					modTime:    currentModTime,
+				}
+				cacheMutex.Unlock()
 
 				return api.OnResolveResult{Path: tmpFilePath}, nil
 			})
