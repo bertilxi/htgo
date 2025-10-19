@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bertilxi/alloy"
+	"github.com/bertilxi/alloy/core"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -112,7 +113,7 @@ func (pw *pagesWatcher) registerNewPage(page *alloy.Page) error {
 	page.AssignOptions(pw.engine.Options)
 
 	// Create cache directory for the new page
-	err := os.MkdirAll(filepath.Dir(alloy.PageCacheKey(page.File, "")), 0755)
+	err := os.MkdirAll(filepath.Dir(core.PageCacheKey(page.File, "")), 0755)
 	if err != nil {
 		fmt.Printf("❌ Failed to create cache directory: %v\n", err)
 		return err

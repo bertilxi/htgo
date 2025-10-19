@@ -1,4 +1,4 @@
-package alloy
+package core
 
 import (
 	"fmt"

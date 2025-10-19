@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/bertilxi/alloy"
+	"github.com/bertilxi/alloy/core"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -57,7 +58,7 @@ func (hr *hotReload) watch() error {
 	}
 	defer watcher.Close()
 
-	err = filepath.Walk(alloy.CacheDir, func(path string, fi os.FileInfo, err error) error {
+	err = filepath.Walk(core.CacheDir, func(path string, fi os.FileInfo, err error) error {
 		if fi.Mode().IsDir() {
 			return watcher.Add(path)
 		}

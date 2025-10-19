@@ -6,10 +6,11 @@ import (
 	"sync"
 
 	"github.com/bertilxi/alloy"
+	"github.com/bertilxi/alloy/core"
 )
 
 func Build(engine *alloy.Engine) error {
-	os.Setenv("Alloy_ENV", string(alloy.AlloyEnvProd))
+	os.Setenv("Alloy_ENV", string(core.AlloyEnvProd))
 
 	PrintBuildStart(engine)
 
@@ -38,7 +39,7 @@ func Build(engine *alloy.Engine) error {
 		return err
 	}
 
-	err = alloy.CleanCache()
+	err = core.CleanCache()
 	if err != nil {
 		return fmt.Errorf("failed to clean cache: %w", err)
 	}

@@ -3,17 +3,18 @@ package alloy
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/bertilxi/alloy/core"
 )
 
 func BenchmarkBundleCache(b *testing.B) {
-	testBundle := `var React = {}; function renderPage() { return "<div>Test</div>"; };`
 	cacheKey := "test.ssr.js"
 
-	bundleCache.Store(cacheKey, testBundle)
+	reader := &core.FileSystemBundleReader{Dev: true}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		bundleCache.Load(cacheKey)
+		core.GetServerBundle(reader, cacheKey)
 	}
 }
 
@@ -44,7 +45,7 @@ func BenchmarkErrorExtraction(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, err := range errors {
-			extractJSErrorContext(err)
+			core.ExtractJSErrorContext(err)
 		}
 	}
 }

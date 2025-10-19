@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/bertilxi/alloy"
+	"github.com/bertilxi/alloy/core"
 	"github.com/evanw/esbuild/pkg/api"
 )
 
@@ -229,7 +230,7 @@ func newTailwindPlugin(shouldMinify bool, enableCache bool) api.Plugin {
 
 				tmpFilePath := filepath.Join(
 					cwd,
-					alloy.CacheDir,
+					core.CacheDir,
 					strings.ReplaceAll(strings.ReplaceAll(sourceFullPath, ".css", ""), cwd, "")+".tmp.css",
 				)
 

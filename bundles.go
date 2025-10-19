@@ -1,53 +1,30 @@
 package alloy
 
 import (
-	"os"
-	"sync"
+	"github.com/bertilxi/alloy/core"
 )
 
-var bundleCache sync.Map
-
+// ClearBundleCache clears the in-memory bundle cache.
 func ClearBundleCache() {
-	bundleCache.Range(func(key, value interface{}) bool {
-		bundleCache.Delete(key)
-		return true
-	})
+	core.ClearBundleCache()
 }
 
-func (page *Page) readFile(name string) ([]byte, error) {
-	if IsDev() || page.embedFS == nil {
-		return os.ReadFile(name)
+func (page *Page) getBundleReader() *core.FileSystemBundleReader {
+	return &core.FileSystemBundleReader{
+		Dev:     core.IsDev(),
+		EmbedFS: page.embedFS,
 	}
-
-	return page.embedFS.ReadFile(name)
 }
 
 func (page *Page) getServerJsFromFs() (string, error) {
-	cacheKey := PageCacheKey(page.File, "ssr.js")
-
-	if val, ok := bundleCache.Load(cacheKey); ok {
-		return val.(string), nil
-	}
-
-	cached, err := page.readFile(cacheKey)
-	if err != nil {
-		return "", err
-	}
-
-	bundle := string(cached)
-	bundleCache.Store(cacheKey, bundle)
-	return bundle, nil
+	cacheKey := core.PageCacheKey(page.File, "ssr.js")
+	reader := page.getBundleReader()
+	return core.GetServerBundle(reader, cacheKey)
 }
 
 func (page *Page) getClientJsFromFs() (string, string, error) {
-	jsCacheKey := PageCacheKey(page.File, "js")
-	cssCacheKey := PageCacheKey(page.File, "css")
-
-	_, jsErr := page.readFile(jsCacheKey)
-	_, cssErr := page.readFile(cssCacheKey)
-	if jsErr != nil || cssErr != nil {
-		return "", "", jsErr
-	}
-
-	return jsCacheKey, cssCacheKey, nil
+	jsCacheKey := core.PageCacheKey(page.File, "js")
+	cssCacheKey := core.PageCacheKey(page.File, "css")
+	reader := page.getBundleReader()
+	return core.GetClientBundles(reader, jsCacheKey, cssCacheKey)
 }

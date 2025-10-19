@@ -8,6 +8,7 @@ import (
 
 	"github.com/buke/quickjs-go"
 	"github.com/gin-gonic/gin"
+	"github.com/bertilxi/alloy/core"
 )
 
 type htmlTemplateData struct {
@@ -134,10 +135,10 @@ func (p *Page) Render(c *gin.Context) {
 			if errorHandler != nil {
 				errorHandler(c, err, p)
 			} else {
-				renderErr := &renderError{
-					step:    "loader execution",
-					message: "Loader failed",
-					details: err.Error(),
+				renderErr := &core.RenderError{
+					Step:    "loader execution",
+					Message: "Loader failed",
+					Details: err.Error(),
 				}
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": renderErr.Error(),
@@ -153,10 +154,10 @@ func (p *Page) Render(c *gin.Context) {
 
 	jsonProps, err := json.Marshal(props)
 	if err != nil {
-		renderErr := &renderError{
-			step:    "props serialization",
-			message: "Failed to convert props to JSON",
-			details: err.Error(),
+		renderErr := &core.RenderError{
+			Step:    "props serialization",
+			Message: "Failed to convert props to JSON",
+			Details: err.Error(),
 		}
 		if errorHandler != nil {
 			errorHandler(c, renderErr, p)
@@ -171,11 +172,11 @@ func (p *Page) Render(c *gin.Context) {
 
 	renderedHTML, err := p.ssr(string(jsonProps))
 	if err != nil {
-		details := extractJSErrorContext(err.Error())
-		renderErr := &renderError{
-			step:    "server-side rendering",
-			message: "React component rendering failed",
-			details: details,
+		details := core.ExtractJSErrorContext(err.Error())
+		renderErr := &core.RenderError{
+			Step:    "server-side rendering",
+			Message: "React component rendering failed",
+			Details: details,
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": renderErr.Error(),
@@ -187,10 +188,10 @@ func (p *Page) Render(c *gin.Context) {
 
 	clientBundle, clientCSS, err := p.getClientJsFromFs()
 	if err != nil {
-		renderErr := &renderError{
-			step:    "bundle loading",
-			message: "Client bundle files not found",
-			details: fmt.Sprintf("Expected files for: %s", p.File),
+		renderErr := &core.RenderError{
+			Step:    "bundle loading",
+			Message: "Client bundle files not found",
+			Details: fmt.Sprintf("Expected files for: %s", p.File),
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": renderErr.Error(),
@@ -202,10 +203,10 @@ func (p *Page) Render(c *gin.Context) {
 
 	tmpl, err := template.New("webpage").Parse(htmlTemplate)
 	if err != nil {
-		renderErr := &renderError{
-			step:    "template parsing",
-			message: "Internal template error",
-			details: err.Error(),
+		renderErr := &core.RenderError{
+			Step:    "template parsing",
+			Message: "Internal template error",
+			Details: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": renderErr.Error(),
@@ -219,7 +220,7 @@ func (p *Page) Render(c *gin.Context) {
 		JS:              template.JS(p.assetURL(clientBundle)),
 		CSS:             template.CSS(p.assetURL(clientCSS)),
 		Title:           template.HTML(p.Title),
-		IsDev:           IsDev(),
+		IsDev:           core.IsDev(),
 		RouteID:         p.File,
 		MetaTags:        p.MetaTags,
 		Links:           p.Links,
@@ -233,10 +234,10 @@ func (p *Page) Render(c *gin.Context) {
 
 	err = tmpl.Execute(c.Writer, data)
 	if err != nil {
-		renderErr := &renderError{
-			step:    "template execution",
-			message: "Failed to render HTML",
-			details: err.Error(),
+		renderErr := &core.RenderError{
+			Step:    "template execution",
+			Message: "Failed to render HTML",
+			Details: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": renderErr.Error(),

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/bertilxi/alloy/core"
 )
 
 // RegisterRoutes registers all pages and handlers to the Gin router.
@@ -39,11 +40,11 @@ func (engine *Engine) RegisterRoutes() error {
 // Serves bundles from disk (dev) or embedded FS (production).
 func (engine *Engine) RegisterBundles() {
 	if engine.EmbedFS == nil {
-		engine.Router.Static(CacheDir, CacheDir)
+		engine.Router.Static(core.CacheDir, core.CacheDir)
 	} else {
-		engine.Router.Any(CacheDir+"/*path", func(c *gin.Context) {
+		engine.Router.Any(core.CacheDir+"/*path", func(c *gin.Context) {
 			route := c.Param("path")
-			c.FileFromFS(path.Join(CacheDir, route), http.FS(engine.EmbedFS))
+			c.FileFromFS(path.Join(core.CacheDir, route), http.FS(engine.EmbedFS))
 		})
 	}
 }
@@ -95,7 +96,7 @@ func (page *Page) assetURL(path string) string {
 }
 
 func New(options Options) *Engine {
-	if IsProd() {
+	if core.IsProd() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 

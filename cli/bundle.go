@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bertilxi/alloy"
+	"github.com/bertilxi/alloy/core"
 	esbuild "github.com/evanw/esbuild/pkg/api"
 )
 
@@ -60,7 +61,7 @@ var clientLoaderMap = map[string]esbuild.Loader{
 }
 
 func getSourcemapMode() esbuild.SourceMap {
-	if alloy.IsProd() {
+	if core.IsProd() {
 		return esbuild.SourceMapNone
 	}
 	return esbuild.SourceMapLinked
@@ -70,7 +71,7 @@ func (b *bundler) backendOptions() esbuild.BuildOptions {
 	pagePath, _ := filepath.Abs(b.page.File)
 	pageDir := filepath.Dir(pagePath)
 	pageName := filepath.Base(pagePath)
-	outfile := strings.TrimSuffix(path.Join(alloy.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".ssr.js"
+	outfile := strings.TrimSuffix(path.Join(core.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".ssr.js"
 
 	return esbuild.BuildOptions{
 		Outfile: outfile,
@@ -88,9 +89,9 @@ func (b *bundler) backendOptions() esbuild.BuildOptions {
 		Loader:            serverLoaderMap,
 		Bundle:            true,
 		Write:             true,
-		MinifyWhitespace:  alloy.IsProd(),
-		MinifyIdentifiers: alloy.IsProd(),
-		MinifySyntax:      alloy.IsProd(),
+		MinifyWhitespace:  core.IsProd(),
+		MinifyIdentifiers: core.IsProd(),
+		MinifySyntax:      core.IsProd(),
 		Sourcemap:         getSourcemapMode(),
 	}
 }
@@ -111,7 +112,7 @@ func (b *bundler) clientOptions() esbuild.BuildOptions {
 	pagePath, _ := filepath.Abs(b.page.File)
 	pageDir := filepath.Dir(pagePath)
 	pageName := filepath.Base(pagePath)
-	outfile := strings.TrimSuffix(path.Join(alloy.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".js"
+	outfile := strings.TrimSuffix(path.Join(core.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".js"
 
 	clientOpts := esbuild.BuildOptions{
 		Outfile: outfile,
@@ -126,12 +127,12 @@ func (b *bundler) clientOptions() esbuild.BuildOptions {
 		Loader:            clientLoaderMap,
 		Bundle:            true,
 		Write:             true,
-		MinifyWhitespace:  alloy.IsProd(),
-		MinifyIdentifiers: alloy.IsProd(),
-		MinifySyntax:      alloy.IsProd(),
+		MinifyWhitespace:  core.IsProd(),
+		MinifyIdentifiers: core.IsProd(),
+		MinifySyntax:      core.IsProd(),
 		Sourcemap:         getSourcemapMode(),
 		Plugins: []esbuild.Plugin{
-			newTailwindPlugin(alloy.IsProd(), false), // disable caching in dev for hot reload
+			newTailwindPlugin(core.IsProd(), false), // disable caching in dev for hot reload
 		},
 	}
 

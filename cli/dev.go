@@ -8,10 +8,11 @@ import (
 	"syscall"
 
 	"github.com/bertilxi/alloy"
+	"github.com/bertilxi/alloy/core"
 )
 
 func mkdirCache(page string) error {
-	err := os.MkdirAll(path.Dir(alloy.PageCacheKey(page, "")), 0755)
+	err := os.MkdirAll(path.Dir(core.PageCacheKey(page, "")), 0755)
 	if err != nil {
 		return err
 	}
@@ -20,7 +21,7 @@ func mkdirCache(page string) error {
 }
 
 func Dev(engine *alloy.Engine) error {
-	err := alloy.CleanCache()
+	err := core.CleanCache()
 	if err != nil {
 		return err
 	}

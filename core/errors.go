@@ -1,25 +1,25 @@
-package alloy
+package core
 
 import (
 	"fmt"
 	"strings"
 )
 
-type renderError struct {
-	step    string
-	message string
-	details string
+type RenderError struct {
+	Step    string
+	Message string
+	Details string
 }
 
-func (e *renderError) Error() string {
-	msg := fmt.Sprintf("❌ Rendering failed at %s: %s", e.step, e.message)
-	if e.details != "" {
-		msg += fmt.Sprintf("\n   Details: %s", e.details)
+func (e *RenderError) Error() string {
+	msg := fmt.Sprintf("❌ Rendering failed at %s: %s", e.Step, e.Message)
+	if e.Details != "" {
+		msg += fmt.Sprintf("\n   Details: %s", e.Details)
 	}
 	return msg
 }
 
-func extractJSErrorContext(jsErr string) string {
+func ExtractJSErrorContext(jsErr string) string {
 	jsErr = strings.TrimSpace(jsErr)
 	if strings.Contains(jsErr, "ReferenceError") {
 		return "Undefined variable or function - check imports and component exports"
