@@ -83,22 +83,25 @@ func New(options Options) *Engine {
 		port = os.Getenv("PORT")
 	}
 
+	pagesDir := options.PagesDir
+	if pagesDir == "" {
+		pagesDir = "./pages"
+	}
+
 	engine := &Engine{
 		Options: Options{
-			Router:           options.Router,
-			EmbedFS:          options.EmbedFS,
-			Title:            options.Title,
-			MetaTags:         options.MetaTags,
-			Links:            options.Links,
-			Lang:             options.Lang,
-			Class:            options.Class,
-			Port:             port,
-			PagesDir:         options.PagesDir,
-			Loaders:          options.Loaders,
-			Handlers:         options.Handlers,
-			ErrorHandler:     options.ErrorHandler,
-			AssetURLPrefix:   options.AssetURLPrefix,
-			CacheBustVersion: options.CacheBustVersion,
+			Router:       options.Router,
+			EmbedFS:      options.EmbedFS,
+			Title:        options.Title,
+			MetaTags:     options.MetaTags,
+			Links:        options.Links,
+			Lang:         options.Lang,
+			Class:        options.Class,
+			Port:         port,
+			PagesDir:     pagesDir,
+			Loaders:      options.Loaders,
+			Handlers:     options.Handlers,
+			ErrorHandler: options.ErrorHandler,
 		},
 		Loaders:  options.Loaders,
 		Handlers: options.Handlers,

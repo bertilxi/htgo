@@ -6,10 +6,8 @@ import (
 )
 
 type pageContext struct {
-	embedFS          *embed.FS
-	errorHandler     ErrorHandler
-	assetURLPrefix   string
-	cacheBustVersion string
+	embedFS      *embed.FS
+	errorHandler ErrorHandler
 }
 
 var pageContexts = make(map[string]pageContext)
@@ -29,30 +27,15 @@ func (page *Page) AssignOptions(options Options) {
 	}
 
 	pageContexts[page.File] = pageContext{
-		embedFS:          options.EmbedFS,
-		errorHandler:     options.ErrorHandler,
-		assetURLPrefix:   options.AssetURLPrefix,
-		cacheBustVersion: options.CacheBustVersion,
+		embedFS:      options.EmbedFS,
+		errorHandler: options.ErrorHandler,
 	}
 }
 
 func (page *Page) assetURL(path string) string {
-	ctx, exists := pageContexts[page.File]
-	if !exists {
-		ctx = pageContext{}
-	}
-
-	prefix := ctx.assetURLPrefix
-	if prefix == "" {
-		prefix = "/"
-	}
-
-	url := prefix + path
-	if !strings.HasPrefix(url, "/") {
-		url = "/" + url
-	}
-	if ctx.cacheBustVersion != "" {
-		url += "?v=" + ctx.cacheBustVersion
+	url := "/" + path
+	if strings.HasPrefix(url, "//") {
+		url = strings.TrimPrefix(url, "/")
 	}
 	return url
 }

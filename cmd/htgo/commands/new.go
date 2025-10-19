@@ -6,6 +6,14 @@ import (
 	"path/filepath"
 )
 
+// IMPORTANT: The templates below must be kept in sync with the public API defined in htgo/types.go and htgo/engine.go.
+//
+// For Options template: Only include fields that are absolutely necessary or have non-sensible defaults.
+// Omit fields with sensible defaults (Router, Port, PagesDir="./pages", Lang, Class, MetaTags, Links, ErrorHandler).
+// Always include: EmbedFS, Title (app identity), Loaders, Handlers (required registries).
+//
+// When modifying public API in types.go or engine.go, reflect those changes in the templates below.
+
 func NewCmd(args []string) {
 	if len(args) < 1 {
 		fmt.Fprintln(os.Stderr, "❌ Usage: htgo new <project-name>")
@@ -47,8 +55,8 @@ func createProject(name string) error {
 	fmt.Printf("📝 Creating files...\n")
 
 	files := map[string]string{
-		filepath.Join(projectDir, ".htgo/keep"):                  "",
-		filepath.Join(projectDir, ".htgo/favicon.svg"):           faviconTemplate,
+		filepath.Join(projectDir, ".htgo/keep"):                 "",
+		filepath.Join(projectDir, ".htgo/favicon.svg"):          faviconTemplate,
 		filepath.Join(projectDir, "app.go"):                     appGoTemplate,
 		filepath.Join(projectDir, "pages/generate.go"):          pagesGenerateTemplate,
 		filepath.Join(projectDir, "pages/index.tsx"):            indexPageTemplate,
@@ -102,10 +110,9 @@ import (
 var EmbedFS embed.FS
 
 var Options = htgo.Options{
-	EmbedFS:  &EmbedFS,
-	PagesDir: "./pages",
-	Title:    "My HTGO App",
-	Loaders:  pages.LoaderRegistry,
+	EmbedFS: &EmbedFS,
+	Title:   "My HTGO App",
+	Loaders: pages.LoaderRegistry,
 	Handlers: pages.HandlerRegistry,
 }
 `
@@ -182,7 +189,7 @@ go 1.23
 require github.com/bertilxi/htgo v0.1.0
 
 // For local development, uncomment and update the path:
-// replace github.com/bertilxi/htgo => ../htgo
+// replace github.com/bertilxi/htgo => ../path/to/htgo
 `
 
 const stylesCssTemplate = `@import "tailwindcss";

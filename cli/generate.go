@@ -208,4 +208,3 @@ func ensureGeneratedLoaders(pagesDir string) error {
 	// File doesn't exist, generate it
 	return GenerateLoaders(pagesDir)
 }
-

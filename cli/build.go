@@ -44,8 +44,8 @@ func Build(engine *htgo.Engine) error {
 	}
 
 	type buildResult struct {
-		page  htgo.Page
-		err   error
+		page htgo.Page
+		err  error
 	}
 
 	resultsCh := make(chan buildResult, len(engine.Pages))
@@ -91,7 +91,7 @@ func Build(engine *htgo.Engine) error {
 
 	if failedCount > 0 {
 		PrintBuildFailed(failedCount, len(engine.Pages))
-		return fmt.Errorf("failed to build %d pages", failedCount);
+		return fmt.Errorf("failed to build %d pages", failedCount)
 	}
 
 	PrintBuildComplete(len(engine.Pages), warnings)

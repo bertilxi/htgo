@@ -40,20 +40,18 @@ type ErrorHandler func(c *gin.Context, err error, page *Page)
 type PageLoader func(c *gin.Context) (any, error)
 
 type Options struct {
-	Router           *gin.Engine
-	EmbedFS          *embed.FS
-	Title            string
-	MetaTags         []MetaTag
-	Links            []Link
-	PagesDir         string
-	Loaders          map[string]PageLoader
-	Handlers         map[string]gin.HandlerFunc
-	Lang              string
-	Class            string
-	Port             string
-	ErrorHandler     ErrorHandler
-	AssetURLPrefix   string
-	CacheBustVersion string
+	Router       *gin.Engine
+	EmbedFS      *embed.FS
+	Title        string
+	MetaTags     []MetaTag
+	Links        []Link
+	PagesDir     string
+	Loaders      map[string]PageLoader
+	Handlers     map[string]gin.HandlerFunc
+	Lang         string
+	Class        string
+	Port         string
+	ErrorHandler ErrorHandler
 }
 
 type Engine struct {

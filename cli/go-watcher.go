@@ -13,11 +13,11 @@ import (
 )
 
 type goWatcher struct {
-	devBinary  string
-	debounce   time.Duration
+	devBinary   string
+	debounce    time.Duration
 	lastRebuild time.Time
-	watchDirs  []string
-	sigChan    chan os.Signal
+	watchDirs   []string
+	sigChan     chan os.Signal
 }
 
 func newGoWatcher(devBinary string, sigChan chan os.Signal) *goWatcher {

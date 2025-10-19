@@ -50,10 +50,6 @@ func BenchmarkErrorExtraction(b *testing.B) {
 }
 
 func BenchmarkAssetURL(b *testing.B) {
-	pageContexts["test.tsx"] = pageContext{
-		assetURLPrefix:   "/cdn",
-		cacheBustVersion: "v1.0.0",
-	}
 	page := &Page{File: "test.tsx"}
 
 	b.ResetTimer()

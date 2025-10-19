@@ -87,4 +87,3 @@ func filePathToRoute(filePath string, pagesDir string) string {
 
 	return "/" + strings.Join(routeParts, "/")
 }
-
