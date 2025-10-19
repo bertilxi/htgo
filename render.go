@@ -118,10 +118,8 @@ func (page *Page) ssr(props string) (string, error) {
 	ctx := rt.NewContext()
 	defer ctx.Close()
 
-	res, err := ctx.Eval(bundle + "; renderPage(" + props + ")")
-	if err != nil {
-		return "", err
-	}
+	res := ctx.Eval(bundle + "; renderPage(" + props + ")")
+	defer res.Free()
 
 	return res.String(), nil
 }
