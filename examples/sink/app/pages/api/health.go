@@ -4,10 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Health(c *gin.Context) error {
+func Health(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status":  "ok",
 		"message": "API is healthy",
 	})
-	return nil
 }

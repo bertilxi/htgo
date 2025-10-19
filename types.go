@@ -39,12 +39,6 @@ type ErrorHandler func(c *gin.Context, err error, page *Page)
 // Signature: func(c *gin.Context) (props any, err error)
 type PageLoader func(c *gin.Context) (any, error)
 
-// Handler handles an HTTP request with full Gin API control.
-// Used for API endpoints and other non-page routes.
-// Handlers can use c.JSON(), c.File(), c.String(), etc. directly.
-// Return error if something went wrong; handler is responsible for setting response.
-type Handler func(c *gin.Context) error
-
 type Options struct {
 	Router           *gin.Engine
 	EmbedFS          *embed.FS
@@ -53,7 +47,7 @@ type Options struct {
 	Links            []Link
 	PagesDir         string
 	Loaders          map[string]PageLoader
-	Handlers         map[string]Handler
+	Handlers         map[string]gin.HandlerFunc
 	Lang              string
 	Class            string
 	Port             string
@@ -66,5 +60,5 @@ type Engine struct {
 	Options
 	Pages    []Page
 	Loaders  map[string]PageLoader
-	Handlers map[string]Handler
+	Handlers map[string]gin.HandlerFunc
 }

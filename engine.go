@@ -21,16 +21,7 @@ func (engine *Engine) HandleRoutes() {
 	// Register API handlers first (so they take precedence over page routes)
 	if engine.Handlers != nil && len(engine.Handlers) > 0 {
 		for route, handler := range engine.Handlers {
-			// Create a local copy to avoid closure issues
-			handlerCopy := handler
-			// Register handler with Any method (all HTTP verbs)
-			engine.Router.Any(route, func(c *gin.Context) {
-				err := handlerCopy(c)
-				if err != nil && c.Writer.Status() == http.StatusOK {
-					// Only set error response if handler didn't already write response
-					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				}
-			})
+			engine.Router.Any(route, handler)
 		}
 	}
 

@@ -117,7 +117,7 @@ import (
 )
 
 // LoadIndex provides server-side data to pages/index.tsx
-// This function is auto-registered via HandlerRegistry in pages/loaders_generated.go
+// This function is auto-registered via LoaderRegistry in pages/loaders_generated.go
 func LoadIndex(c *gin.Context) (any, error) {
 	return map[string]any{
 		"message": "Hello from HTGO! 🚀",
@@ -281,6 +281,7 @@ package pages
 
 import (
 	"github.com/bertilxi/htgo"
+	"github.com/gin-gonic/gin"
 	api "my-app/pages/api"
 )
 
@@ -291,8 +292,7 @@ var LoaderRegistry = map[string]htgo.PageLoader{
 }
 
 // HandlerRegistry maps API routes to their corresponding handler functions.
-// Handlers have full Gin API control - use c.JSON(), c.File(), etc. directly.
-var HandlerRegistry = map[string]htgo.Handler{
+var HandlerRegistry = map[string]gin.HandlerFunc{
 	"/api/hello": api.Hello,
 }
 `
@@ -304,14 +304,12 @@ import (
 )
 
 // Hello is a sample API handler that responds to /api/hello
-// API handlers have full control over the Gin context and response
 // Try it: curl http://localhost:8080/api/hello?name=Alice
-func Hello(c *gin.Context) error {
+func Hello(c *gin.Context) {
 	name := c.DefaultQuery("name", "World")
 	c.JSON(200, gin.H{
 		"message": "Hello, " + name + "!",
 		"status":  "ok",
 	})
-	return nil
 }
 `

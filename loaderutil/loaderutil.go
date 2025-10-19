@@ -192,8 +192,8 @@ func IsErrorType(expr ast.Expr) bool {
 }
 
 // IsValidAPIHandlerSignature checks if a function has the API handler signature:
-// func(c *gin.Context) error
-// API handlers have direct Gin API control and only return error.
+// func(c *gin.Context)
+// API handlers have direct Gin API control via gin.HandlerFunc.
 func IsValidAPIHandlerSignature(funcDecl *ast.FuncDecl) bool {
 	if funcDecl.Type.Params == nil {
 		return false
@@ -209,13 +209,8 @@ func IsValidAPIHandlerSignature(funcDecl *ast.FuncDecl) bool {
 		return false
 	}
 
-	// Check return types: should be (error) only
-	if funcDecl.Type.Results == nil || len(funcDecl.Type.Results.List) != 1 {
-		return false
-	}
-
-	// Single return should be 'error'
-	if !IsErrorType(funcDecl.Type.Results.List[0].Type) {
+	// Check return types: should have no return values (gin.HandlerFunc signature)
+	if funcDecl.Type.Results != nil && len(funcDecl.Type.Results.List) > 0 {
 		return false
 	}
 

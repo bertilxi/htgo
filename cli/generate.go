@@ -140,7 +140,8 @@ func generateLoaderRegistry(pagesDir, apiImportPath string, loaders []loaderutil
 package %s
 
 import (
-	"github.com/bertilxi/htgo"`, pagesDir, pkgName))
+	"github.com/bertilxi/htgo"
+	"github.com/gin-gonic/gin"`, pagesDir, pkgName))
 
 	if hasAPIHandlers && apiImportPath != "" {
 		sb.WriteString(fmt.Sprintf(`
@@ -166,8 +167,7 @@ var LoaderRegistry = map[string]htgo.PageLoader{
 	sb.WriteString(`}
 
 // HandlerRegistry maps API routes to their corresponding handler functions.
-// Handlers have full Gin API control - use c.JSON(), c.File(), etc. directly.
-var HandlerRegistry = map[string]htgo.Handler{
+var HandlerRegistry = map[string]gin.HandlerFunc{
 `)
 
 	// Add each API handler

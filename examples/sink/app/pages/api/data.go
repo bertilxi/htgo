@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Data(c *gin.Context) error {
+func Data(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"items": []gin.H{
 			{
@@ -18,5 +18,4 @@ func Data(c *gin.Context) error {
 		},
 		"total": 2,
 	})
-	return nil
 }
