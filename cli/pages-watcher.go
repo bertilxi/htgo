@@ -62,7 +62,7 @@ func (pw *pagesWatcher) isLoaderFile(path string) bool {
 }
 
 func (pw *pagesWatcher) processPageChanges() error {
-	newPages, err := htgo.DiscoverPages(pw.pagesDir, pw.engine.Loaders)
+	newPages, err := htgo.DiscoverPages(pw.pagesDir, pw.engine.Handlers)
 	if err != nil {
 		fmt.Printf("❌ Failed to discover pages: %v\n", err)
 		return err

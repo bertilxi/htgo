@@ -5,11 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
-func DiscoverPages(pagesDir string, loaders map[string]func(c *gin.Context) (any, error)) ([]Page, error) {
+func DiscoverPages(pagesDir string, handlers map[string]Handler) ([]Page, error) {
 	if pagesDir == "" {
 		return nil, fmt.Errorf("pagesDir is required")
 	}
@@ -48,8 +46,8 @@ func DiscoverPages(pagesDir string, loaders map[string]func(c *gin.Context) (any
 			Interactive: true,
 		}
 
-		if loaders != nil {
-			if handler, exists := loaders[route]; exists {
+		if handlers != nil {
+			if handler, exists := handlers[route]; exists {
 				page.Handler = handler
 			}
 		}

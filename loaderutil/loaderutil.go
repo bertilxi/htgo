@@ -191,10 +191,11 @@ func IsErrorType(expr ast.Expr) bool {
 	return ident.Name == "error"
 }
 
-// IsValidAPIHandlerSignature checks if a function has the API handler signature:
-// func(c *gin.Context) with no return values
+// IsValidAPIHandlerSignature checks if a function has the unified handler signature:
+// func(c *gin.Context) (any, error)
+// This is the same signature as page loaders, allowing flexibility in return types.
 func IsValidAPIHandlerSignature(funcDecl *ast.FuncDecl) bool {
-	if funcDecl.Type.Params == nil {
+	if funcDecl.Type.Params == nil || funcDecl.Type.Results == nil {
 		return false
 	}
 
@@ -208,8 +209,18 @@ func IsValidAPIHandlerSignature(funcDecl *ast.FuncDecl) bool {
 		return false
 	}
 
-	// Check return types: should be void (no return values)
-	if funcDecl.Type.Results != nil && len(funcDecl.Type.Results.List) > 0 {
+	// Check return types: should be (any, error)
+	if len(funcDecl.Type.Results.List) != 2 {
+		return false
+	}
+
+	// First return should be 'any'
+	if !IsAnyType(funcDecl.Type.Results.List[0].Type) {
+		return false
+	}
+
+	// Second return should be 'error'
+	if !IsErrorType(funcDecl.Type.Results.List[1].Type) {
 		return false
 	}
 

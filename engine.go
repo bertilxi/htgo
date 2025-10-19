@@ -10,20 +10,40 @@ import (
 )
 
 func (engine *Engine) HandleRoutes() {
-	// Register API handlers first (so they take precedence over page routes)
-	if engine.APIHandlers != nil && len(engine.APIHandlers) > 0 {
-		for route, handler := range engine.APIHandlers {
-			engine.Router.Any(route, handler)
-		}
-	}
-
-	pages, err := DiscoverPages(engine.PagesDir, engine.Loaders)
+	pages, err := DiscoverPages(engine.PagesDir, engine.Handlers)
 	if err != nil {
 		fmt.Printf("Error discovering pages: %v\n", err)
 		os.Exit(1)
 	}
 
 	engine.Pages = pages
+
+	// Register API handlers first (so they take precedence over page routes)
+	if engine.Handlers != nil && len(engine.Handlers) > 0 {
+		for route, handler := range engine.Handlers {
+			isPageRoute := false
+			for _, page := range engine.Pages {
+				if page.Route == route {
+					isPageRoute = true
+					break
+				}
+			}
+
+			if !isPageRoute {
+				// This is an API handler - register with Any method
+				engine.Router.Any(route, func(c *gin.Context) {
+					response, err := handler(c)
+					if err != nil {
+						c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+						return
+					}
+					if response != nil {
+						c.JSON(http.StatusOK, response)
+					}
+				})
+			}
+		}
+	}
 
 	for i := range engine.Pages {
 		engine.Pages[i].AssignOptions(engine.Options)
@@ -94,13 +114,12 @@ func New(options Options) *Engine {
 			Class:            options.Class,
 			Port:             port,
 			PagesDir:         options.PagesDir,
-			Loaders:          options.Loaders,
-			APIHandlers:      options.APIHandlers,
+			Handlers:         options.Handlers,
 			ErrorHandler:     options.ErrorHandler,
 			AssetURLPrefix:   options.AssetURLPrefix,
 			CacheBustVersion: options.CacheBustVersion,
 		},
-		Loaders: options.Loaders,
+		Handlers: options.Handlers,
 	}
 
 	return engine

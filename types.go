@@ -35,6 +35,10 @@ type Page struct {
 
 type ErrorHandler func(c *gin.Context, err error, page *Page)
 
+// Handler is a unified handler function that can return any response compatible with Gin.
+// For page loaders, return props data. For API handlers, return any response type (JSON, HTML, etc.).
+type Handler func(c *gin.Context) (any, error)
+
 type Options struct {
 	Router           *gin.Engine
 	EmbedFS          *embed.FS
@@ -42,8 +46,7 @@ type Options struct {
 	MetaTags         []MetaTag
 	Links            []Link
 	PagesDir         string
-	Loaders          map[string]func(c *gin.Context) (any, error)
-	APIHandlers      map[string]func(c *gin.Context)
+	Handlers         map[string]Handler
 	Lang              string
 	Class            string
 	Port             string
@@ -54,6 +57,6 @@ type Options struct {
 
 type Engine struct {
 	Options
-	Pages       []Page
-	Loaders     map[string]func(c *gin.Context) (any, error)
+	Pages    []Page
+	Handlers map[string]Handler
 }

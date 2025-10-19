@@ -20,7 +20,7 @@ func Build(engine *htgo.Engine) error {
 	}
 
 	// Discover pages
-	pages, err := htgo.DiscoverPages(engine.Options.PagesDir, engine.Options.Loaders)
+	pages, err := htgo.DiscoverPages(engine.Options.PagesDir, engine.Options.Handlers)
 	if err != nil {
 		return err
 	}
