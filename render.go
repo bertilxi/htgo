@@ -137,15 +137,15 @@ func (p *Page) Render(c *gin.Context) {
 	errorHandler := getErrorHandler(p)
 	props := p.Props
 
-	if p.Handler != nil {
-		handlerProps, err := p.Handler(c)
+	if p.Loader != nil {
+		loaderProps, err := p.Loader(c)
 		if err != nil {
 			if errorHandler != nil {
 				errorHandler(c, err, p)
 			} else {
 				renderErr := &renderError{
-					step:    "handler execution",
-					message: "Handler failed",
+					step:    "loader execution",
+					message: "Loader failed",
 					details: err.Error(),
 				}
 				c.JSON(http.StatusInternalServerError, gin.H{
@@ -155,8 +155,8 @@ func (p *Page) Render(c *gin.Context) {
 			}
 			return
 		}
-		if handlerProps != nil {
-			props = handlerProps
+		if loaderProps != nil {
+			props = loaderProps
 		}
 	}
 

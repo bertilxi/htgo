@@ -152,22 +152,38 @@ import (
 	sb.WriteString(`
 )
 
-// HandlerRegistry maps routes to their corresponding handler functions.
-// This is auto-generated from .go files colocated with pages and in pages/api/.
-// Page loaders provide props for SSR, while API handlers return any response type.
+// LoaderRegistry maps page routes to their corresponding loader functions.
+// Loaders return (any, error) and their data is used as props for SSR.
+var LoaderRegistry = map[string]htgo.PageLoader{
+`)
+
+	// Add each page loader
+	for _, loader := range loaders {
+		if !loader.IsAPI {
+			sb.WriteString(fmt.Sprintf(`	"%s": %s,
+`, loader.Route, loader.FunctionName))
+		}
+	}
+
+	sb.WriteString(`}
+
+// HandlerRegistry maps API routes to their corresponding handler functions.
+// Handlers have full Gin API control - use c.JSON(), c.File(), etc. directly.
 var HandlerRegistry = map[string]htgo.Handler{
 `)
 
-	// Add each handler (both page loaders and API handlers)
+	// Add each API handler
 	for _, loader := range loaders {
-		var funcRef string
-		if loader.IsAPI && apiImportPath != "" {
-			funcRef = "api." + loader.FunctionName
-		} else {
-			funcRef = loader.FunctionName
-		}
-		sb.WriteString(fmt.Sprintf(`	"%s": %s,
+		if loader.IsAPI {
+			var funcRef string
+			if apiImportPath != "" {
+				funcRef = "api." + loader.FunctionName
+			} else {
+				funcRef = loader.FunctionName
+			}
+			sb.WriteString(fmt.Sprintf(`	"%s": %s,
 `, loader.Route, funcRef))
+		}
 	}
 
 	sb.WriteString(`}

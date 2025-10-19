@@ -8,12 +8,16 @@ import (
 	api "github.com/bertilxi/htgo/examples/sink/app/pages/api"
 )
 
-// HandlerRegistry maps routes to their corresponding handler functions.
-// This is auto-generated from .go files colocated with pages and in pages/api/.
-// Page loaders provide props for SSR, while API handlers return any response type.
-var HandlerRegistry = map[string]htgo.Handler{
+// LoaderRegistry maps page routes to their corresponding loader functions.
+// Loaders return (any, error) and their data is used as props for SSR.
+var LoaderRegistry = map[string]htgo.PageLoader{
 	"/": LoadIndex,
 	"/about": LoadAbout,
+}
+
+// HandlerRegistry maps API routes to their corresponding handler functions.
+// Handlers have full Gin API control - use c.JSON(), c.File(), etc. directly.
+var HandlerRegistry = map[string]htgo.Handler{
 	"/api/data": api.Data,
 	"/api/health": api.Health,
 }

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func DiscoverPages(pagesDir string, handlers map[string]Handler) ([]Page, error) {
+func DiscoverPages(pagesDir string, loaders map[string]PageLoader) ([]Page, error) {
 	if pagesDir == "" {
 		return nil, fmt.Errorf("pagesDir is required")
 	}
@@ -46,9 +46,9 @@ func DiscoverPages(pagesDir string, handlers map[string]Handler) ([]Page, error)
 			Interactive: true,
 		}
 
-		if handlers != nil {
-			if handler, exists := handlers[route]; exists {
-				page.Handler = handler
+		if loaders != nil {
+			if loader, exists := loaders[route]; exists {
+				page.Loader = loader
 			}
 		}
 

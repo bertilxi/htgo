@@ -62,7 +62,7 @@ func (pw *pagesWatcher) isLoaderFile(path string) bool {
 }
 
 func (pw *pagesWatcher) processPageChanges() error {
-	newPages, err := htgo.DiscoverPages(pw.pagesDir, pw.engine.Handlers)
+	newPages, err := htgo.DiscoverPages(pw.pagesDir, pw.engine.Loaders)
 	if err != nil {
 		fmt.Printf("❌ Failed to discover pages: %v\n", err)
 		return err
@@ -208,8 +208,9 @@ func (pw *pagesWatcher) watch() error {
 						if err != nil {
 							fmt.Printf("⚠️  Error regenerating loaders: %v\n", err)
 						}
-						// Trigger hot reload
-						pw.hotReload.reload()
+						// Don't trigger hot reload here - let go-watcher detect the change
+						// to loaders_generated.go and trigger a restart
+						fmt.Println("📝 Loaders regenerated. Go watcher will restart the server...")
 					}
 				}
 			}

@@ -10,7 +10,7 @@ import (
 )
 
 func (engine *Engine) HandleRoutes() {
-	pages, err := DiscoverPages(engine.PagesDir, engine.Handlers)
+	pages, err := DiscoverPages(engine.PagesDir, engine.Loaders)
 	if err != nil {
 		fmt.Printf("Error discovering pages: %v\n", err)
 		os.Exit(1)
@@ -21,27 +21,16 @@ func (engine *Engine) HandleRoutes() {
 	// Register API handlers first (so they take precedence over page routes)
 	if engine.Handlers != nil && len(engine.Handlers) > 0 {
 		for route, handler := range engine.Handlers {
-			isPageRoute := false
-			for _, page := range engine.Pages {
-				if page.Route == route {
-					isPageRoute = true
-					break
+			// Create a local copy to avoid closure issues
+			handlerCopy := handler
+			// Register handler with Any method (all HTTP verbs)
+			engine.Router.Any(route, func(c *gin.Context) {
+				err := handlerCopy(c)
+				if err != nil && c.Writer.Status() == http.StatusOK {
+					// Only set error response if handler didn't already write response
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				}
-			}
-
-			if !isPageRoute {
-				// This is an API handler - register with Any method
-				engine.Router.Any(route, func(c *gin.Context) {
-					response, err := handler(c)
-					if err != nil {
-						c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-						return
-					}
-					if response != nil {
-						c.JSON(http.StatusOK, response)
-					}
-				})
-			}
+			})
 		}
 	}
 
@@ -114,11 +103,13 @@ func New(options Options) *Engine {
 			Class:            options.Class,
 			Port:             port,
 			PagesDir:         options.PagesDir,
+			Loaders:          options.Loaders,
 			Handlers:         options.Handlers,
 			ErrorHandler:     options.ErrorHandler,
 			AssetURLPrefix:   options.AssetURLPrefix,
 			CacheBustVersion: options.CacheBustVersion,
 		},
+		Loaders:  options.Loaders,
 		Handlers: options.Handlers,
 	}
 

@@ -28,16 +28,22 @@ type Page struct {
 	Links       []Link
 	Lang        string
 	Class       string
-	Handler     func(c *gin.Context) (props any, err error)
+	Loader      PageLoader
 	embedFS     *embed.FS
 	port        string
 }
 
 type ErrorHandler func(c *gin.Context, err error, page *Page)
 
-// Handler is a unified handler function that can return any response compatible with Gin.
-// For page loaders, return props data. For API handlers, return any response type (JSON, HTML, etc.).
-type Handler func(c *gin.Context) (any, error)
+// PageLoader loads data for a page's SSR, returning props for the React component.
+// Signature: func(c *gin.Context) (props any, err error)
+type PageLoader func(c *gin.Context) (any, error)
+
+// Handler handles an HTTP request with full Gin API control.
+// Used for API endpoints and other non-page routes.
+// Handlers can use c.JSON(), c.File(), c.String(), etc. directly.
+// Return error if something went wrong; handler is responsible for setting response.
+type Handler func(c *gin.Context) error
 
 type Options struct {
 	Router           *gin.Engine
@@ -46,6 +52,7 @@ type Options struct {
 	MetaTags         []MetaTag
 	Links            []Link
 	PagesDir         string
+	Loaders          map[string]PageLoader
 	Handlers         map[string]Handler
 	Lang              string
 	Class            string
@@ -58,5 +65,6 @@ type Options struct {
 type Engine struct {
 	Options
 	Pages    []Page
+	Loaders  map[string]PageLoader
 	Handlers map[string]Handler
 }
