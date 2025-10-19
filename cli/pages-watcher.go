@@ -49,6 +49,18 @@ func (pw *pagesWatcher) isTsxFile(path string) bool {
 	return strings.HasSuffix(path, ".tsx")
 }
 
+func (pw *pagesWatcher) isLoaderFile(path string) bool {
+	// Match .go files but not test files or generated files
+	if !strings.HasSuffix(path, ".go") {
+		return false
+	}
+	base := filepath.Base(path)
+	if strings.HasSuffix(base, "_test.go") || base == "generate.go" || base == "loaders_generated.go" {
+		return false
+	}
+	return true
+}
+
 func (pw *pagesWatcher) processPageChanges() error {
 	newPages, err := htgo.DiscoverPages(pw.pagesDir, pw.engine.Loaders)
 	if err != nil {
@@ -187,8 +199,20 @@ func (pw *pagesWatcher) watch() error {
 				}
 			}
 
-			// .go loader files are handled by the Go watcher, which triggers a rebuild
-			// The rebuild will include the updated loader, and hot reload will happen automatically
+			// Process .go loader file changes (write, create, remove, rename)
+			if pw.isLoaderFile(event.Name) {
+				if event.Op&(fsnotify.Write|fsnotify.Create|fsnotify.Remove|fsnotify.Rename) != 0 {
+					if pw.shouldProcessEvent() {
+						fmt.Println("🔄 Loader file changed, regenerating registry...")
+						err := GenerateLoaders(pw.pagesDir)
+						if err != nil {
+							fmt.Printf("⚠️  Error regenerating loaders: %v\n", err)
+						}
+						// Trigger hot reload
+						pw.hotReload.reload()
+					}
+				}
+			}
 
 		case err, ok := <-watcher.Errors:
 			if !ok {

@@ -25,6 +25,12 @@ func Dev(engine *htgo.Engine) error {
 		return err
 	}
 
+	// Generate loader registry from .go files
+	err = ensureGeneratedLoaders(engine.Options.PagesDir)
+	if err != nil {
+		return err
+	}
+
 	// Discover pages first
 	pages, err := htgo.DiscoverPages(engine.Options.PagesDir, engine.Options.Loaders)
 	if err != nil {

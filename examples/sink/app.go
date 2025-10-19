@@ -42,10 +42,7 @@ func NewOptions(r *gin.Engine) htgo.Options {
 				Href: "/public/favicon.ico",
 			},
 		},
-		Loaders: map[string]func(c *gin.Context) (any, error){
-			"/":      pages.LoadIndex,
-			"/about": pages.LoadAbout,
-		},
+		Loaders: pages.LoaderRegistry,
 	}
 }
 

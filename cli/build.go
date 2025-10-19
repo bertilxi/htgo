@@ -13,8 +13,21 @@ func Build(engine *htgo.Engine) error {
 
 	PrintBuildStart(engine)
 
+	// Generate loader registry from .go files
+	err := ensureGeneratedLoaders(engine.Options.PagesDir)
+	if err != nil {
+		return err
+	}
+
+	// Discover pages
+	pages, err := htgo.DiscoverPages(engine.Options.PagesDir, engine.Options.Loaders)
+	if err != nil {
+		return err
+	}
+	engine.Pages = pages
+
 	// Ensure Tailwind is available before building pages
-	err := EnsureTailwind(engine.Pages)
+	err = EnsureTailwind(engine.Pages)
 	if err != nil {
 		return err
 	}
