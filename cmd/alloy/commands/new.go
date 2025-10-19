@@ -40,9 +40,6 @@ func createProject(name string) error {
 		"pages",
 		"pages/api",
 		".alloy",
-		"cmd/dev",
-		"cmd/build",
-		"cmd/app",
 	}
 
 	for _, dir := range dirs {
@@ -57,7 +54,7 @@ func createProject(name string) error {
 	files := map[string]string{
 		filepath.Join(projectDir, ".alloy/keep"):                "",
 		filepath.Join(projectDir, ".alloy/favicon.svg"):         faviconTemplate,
-		filepath.Join(projectDir, "app.go"):                     appGoTemplate,
+		filepath.Join(projectDir, "main.go"):                    mainGoTemplate,
 		filepath.Join(projectDir, "pages/generate.go"):          pagesGenerateTemplate,
 		filepath.Join(projectDir, "pages/index.tsx"):            indexPageTemplate,
 		filepath.Join(projectDir, "pages/index.go"):             indexLoaderTemplate,
@@ -68,9 +65,6 @@ func createProject(name string) error {
 		filepath.Join(projectDir, "tsconfig.json"):              tsconfigTemplate,
 		filepath.Join(projectDir, "package.json"):               packageJsonTemplate,
 		filepath.Join(projectDir, ".gitignore"):                 gitignoreTemplate,
-		filepath.Join(projectDir, "cmd/dev/main.go"):            devMainTemplate,
-		filepath.Join(projectDir, "cmd/build/main.go"):          buildMainTemplate,
-		filepath.Join(projectDir, "cmd/app/main.go"):            appMainTemplate,
 	}
 
 	for path, content := range files {
@@ -96,26 +90,6 @@ func createProject(name string) error {
 
 	return nil
 }
-
-const appGoTemplate = `package app
-
-import (
-	"embed"
-
-	"github.com/bertilxi/alloy"
-	"my-app/pages"
-)
-
-//go:embed .alloy
-var EmbedFS embed.FS
-
-var Options = alloy.Options{
-	EmbedFS: &EmbedFS,
-	Title:   "My Alloy App",
-	Loaders: pages.LoaderRegistry,
-	Handlers: pages.HandlerRegistry,
-}
-`
 
 const indexLoaderTemplate = `package pages
 
@@ -237,42 +211,30 @@ go.sum
 
 const faviconTemplate = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><path fill="#553986" d="M26 31h4v4h-4zM6 31h4v4H6zm24-21h-2V8h-2V6h-3V2h-2v4h-6V2h-2v4h-3v2H8v2H6v7H2v2h4v7h4v5h5v-5h6v5h5v-5h4v-7h4v-2h-4v-7zM16 21h-4v-8h4v8zm4 0v-8h4v8h-4zM34 6h2v11h-2zM0 6h2v11H0z"/></svg>`
 
-const devMainTemplate = `package main
+const mainGoTemplate = `package main
 
 import (
+	"embed"
+	"log"
+
 	"github.com/bertilxi/alloy"
-	"github.com/bertilxi/alloy/cli"
-	app "my-app"
+	"my-app/pages"
 )
 
-func main() {
-	cli.Dev(alloy.New(app.Options))
-}
-`
-
-const buildMainTemplate = `package main
-
-import (
-	"github.com/bertilxi/alloy"
-	"github.com/bertilxi/alloy/cli"
-	app "my-app"
-)
+//go:embed .alloy
+var EmbedFS embed.FS
 
 func main() {
-	cli.Build(alloy.New(app.Options))
-}
-`
-
-const appMainTemplate = `package main
-
-import (
-	"github.com/bertilxi/alloy"
-	app "my-app"
-)
-
-func main() {
-	engine := alloy.New(app.Options)
-	engine.Start()
+	options := alloy.Options{
+		EmbedFS:  &EmbedFS,
+		Title:    "My Alloy App",
+		Loaders:  pages.LoaderRegistry,
+		Handlers: pages.HandlerRegistry,
+	}
+	engine := alloy.New(options)
+	if err := engine.Start(); err != nil {
+		log.Fatal(err)
+	}
 }
 `
 

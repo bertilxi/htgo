@@ -32,9 +32,9 @@ func runDev(port, dir string) error {
 		return fmt.Errorf("invalid directory: %w", err)
 	}
 
-	appFilePath := filepath.Join(absDir, "app.go")
-	if _, err := os.Stat(appFilePath); err != nil {
-		return fmt.Errorf("app.go not found in %s - are you in an Alloy project?", dir)
+	mainFilePath := filepath.Join(absDir, "main.go")
+	if _, err := os.Stat(mainFilePath); err != nil {
+		return fmt.Errorf("main.go not found in %s - are you in an Alloy project?", dir)
 	}
 
 	fmt.Printf("📁 Loading project from: %s\n", absDir)
@@ -129,11 +129,17 @@ func generateDevProgram(moduleName string) string {
 import (
 	"github.com/bertilxi/alloy"
 	"github.com/bertilxi/alloy/cli"
-	app "%s"
+	"%s/pages"
 )
 
 func main() {
-	if err := cli.Dev(alloy.New(app.Options)); err != nil {
+	options := alloy.Options{
+		EmbedFS:  nil,
+		Title:    "My Alloy App",
+		Loaders:  pages.LoaderRegistry,
+		Handlers: pages.HandlerRegistry,
+	}
+	if err := cli.Dev(alloy.New(options)); err != nil {
 		panic(err)
 	}
 }

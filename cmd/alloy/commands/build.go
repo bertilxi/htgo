@@ -28,9 +28,9 @@ func runBuild(dir, output string) error {
 		return fmt.Errorf("invalid directory: %w", err)
 	}
 
-	appFilePath := filepath.Join(absDir, "app.go")
-	if _, err := os.Stat(appFilePath); err != nil {
-		return fmt.Errorf("app.go not found in %s - are you in an Alloy project?", dir)
+	mainFilePath := filepath.Join(absDir, "main.go")
+	if _, err := os.Stat(mainFilePath); err != nil {
+		return fmt.Errorf("main.go not found in %s - are you in an Alloy project?", dir)
 	}
 
 	fmt.Printf("📁 Building project from: %s\n", absDir)
@@ -135,13 +135,23 @@ func generateBuildProgram(moduleName string) string {
 	return fmt.Sprintf(`package main
 
 import (
+	"embed"
 	"github.com/bertilxi/alloy"
 	"github.com/bertilxi/alloy/cli"
-	app "%s"
+	"%s/pages"
 )
 
+//go:embed .alloy
+var EmbedFS embed.FS
+
 func main() {
-	if err := cli.Build(alloy.New(app.Options)); err != nil {
+	options := alloy.Options{
+		EmbedFS:  &EmbedFS,
+		Title:    "My Alloy App",
+		Loaders:  pages.LoaderRegistry,
+		Handlers: pages.HandlerRegistry,
+	}
+	if err := cli.Build(alloy.New(options)); err != nil {
 		panic(err)
 	}
 }
@@ -152,13 +162,23 @@ func generateAppProgram(moduleName string) string {
 	return fmt.Sprintf(`package main
 
 import (
+	"embed"
 	"github.com/bertilxi/alloy"
-	app "%s"
+	"%s/pages"
 )
+
+//go:embed .alloy
+var EmbedFS embed.FS
 
 func main() {
 	alloy.SetProduction(true)
-	engine := alloy.New(app.Options)
+	options := alloy.Options{
+		EmbedFS:  &EmbedFS,
+		Title:    "My Alloy App",
+		Loaders:  pages.LoaderRegistry,
+		Handlers: pages.HandlerRegistry,
+	}
+	engine := alloy.New(options)
 	engine.Start()
 }
 `, moduleName)

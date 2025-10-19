@@ -30,9 +30,9 @@ func runInstall(dir string) error {
 		return fmt.Errorf("invalid directory: %w", err)
 	}
 
-	appFilePath := filepath.Join(absDir, "app.go")
-	if _, err := os.Stat(appFilePath); err != nil {
-		return fmt.Errorf("app.go not found in %s - are you in an Alloy project?", dir)
+	mainFilePath := filepath.Join(absDir, "main.go")
+	if _, err := os.Stat(mainFilePath); err != nil {
+		return fmt.Errorf("main.go not found in %s - are you in an Alloy project?", dir)
 	}
 
 	fmt.Printf("📦 Installing dependencies...\n\n")
