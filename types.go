@@ -43,6 +43,7 @@ type Options struct {
 	Links            []Link
 	PagesDir         string
 	Loaders          map[string]func(c *gin.Context) (any, error)
+	APIHandlers      map[string]func(c *gin.Context)
 	Lang              string
 	Class            string
 	Port             string
@@ -53,6 +54,6 @@ type Options struct {
 
 type Engine struct {
 	Options
-	Pages   []Page
-	Loaders map[string]func(c *gin.Context) (any, error)
+	Pages       []Page
+	Loaders     map[string]func(c *gin.Context) (any, error)
 }

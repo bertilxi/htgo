@@ -10,6 +10,13 @@ import (
 )
 
 func (engine *Engine) HandleRoutes() {
+	// Register API handlers first (so they take precedence over page routes)
+	if engine.APIHandlers != nil && len(engine.APIHandlers) > 0 {
+		for route, handler := range engine.APIHandlers {
+			engine.Router.Any(route, handler)
+		}
+	}
+
 	pages, err := DiscoverPages(engine.PagesDir, engine.Loaders)
 	if err != nil {
 		fmt.Printf("Error discovering pages: %v\n", err)
@@ -88,6 +95,7 @@ func New(options Options) *Engine {
 			Port:             port,
 			PagesDir:         options.PagesDir,
 			Loaders:          options.Loaders,
+			APIHandlers:      options.APIHandlers,
 			ErrorHandler:     options.ErrorHandler,
 			AssetURLPrefix:   options.AssetURLPrefix,
 			CacheBustVersion: options.CacheBustVersion,

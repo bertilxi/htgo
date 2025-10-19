@@ -16,9 +16,10 @@ type LoaderInfo struct {
 	Route        string // e.g., "/", "/about", "/blog/:slug"
 	FunctionName string // e.g., "LoadIndex", "LoadAbout"
 	FilePath     string // relative path to .go file, e.g., "pages/index.go"
+	IsAPI        bool   // true if this is an API handler (in pages/api/), false if page loader
 }
 
-// DiscoverLoaders finds all .go files with valid loader functions in pagesDir
+// DiscoverLoaders finds all .go files with valid loader and API handler functions in pagesDir
 func DiscoverLoaders(pagesDir string) ([]LoaderInfo, error) {
 	if pagesDir == "" {
 		return nil, fmt.Errorf("pagesDir is required")
@@ -44,11 +45,16 @@ func DiscoverLoaders(pagesDir string) ([]LoaderInfo, error) {
 			return nil
 		}
 
-		// Check if there's a corresponding .tsx file
-		tsxPath := strings.TrimSuffix(path, ".go") + ".tsx"
-		if _, err := os.Stat(tsxPath); err != nil {
-			// No corresponding .tsx file, skip
-			return nil
+		// Check if this is in the api subdirectory
+		isAPIFile := strings.Contains(path, filepath.Join(absPageDir, "api"))
+
+		if !isAPIFile {
+			// For page loaders: check if there's a corresponding .tsx file
+			tsxPath := strings.TrimSuffix(path, ".go") + ".tsx"
+			if _, err := os.Stat(tsxPath); err != nil {
+				// No corresponding .tsx file, skip
+				return nil
+			}
 		}
 
 		// Parse the Go file to find exported functions
@@ -59,7 +65,7 @@ func DiscoverLoaders(pagesDir string) ([]LoaderInfo, error) {
 			return nil
 		}
 
-		// Look for the first exported function matching loader signature
+		// Look for the first exported function matching loader or API handler signature
 		for _, decl := range node.Decls {
 			funcDecl, ok := decl.(*ast.FuncDecl)
 			if !ok {
@@ -71,17 +77,34 @@ func DiscoverLoaders(pagesDir string) ([]LoaderInfo, error) {
 				continue
 			}
 
-			// Check if it matches the loader signature
-			if IsValidLoaderSignature(funcDecl) {
-				route := FilePathToRoute(path, absPageDir)
-				relPath, _ := filepath.Rel(absPageDir, path)
+			if isAPIFile {
+				// Check if it matches the API handler signature: func(c *gin.Context)
+				if IsValidAPIHandlerSignature(funcDecl) {
+					route := FilePathToRoute(path, absPageDir, true)
+					relPath, _ := filepath.Rel(absPageDir, path)
 
-				loaders = append(loaders, LoaderInfo{
-					Route:        route,
-					FunctionName: funcDecl.Name.Name,
-					FilePath:     relPath,
-				})
-				break
+					loaders = append(loaders, LoaderInfo{
+						Route:        route,
+						FunctionName: funcDecl.Name.Name,
+						FilePath:     relPath,
+						IsAPI:        true,
+					})
+					break
+				}
+			} else {
+				// Check if it matches the loader signature: func(c *gin.Context) (any, error)
+				if IsValidLoaderSignature(funcDecl) {
+					route := FilePathToRoute(path, absPageDir, false)
+					relPath, _ := filepath.Rel(absPageDir, path)
+
+					loaders = append(loaders, LoaderInfo{
+						Route:        route,
+						FunctionName: funcDecl.Name.Name,
+						FilePath:     relPath,
+						IsAPI:        false,
+					})
+					break
+				}
 			}
 		}
 
@@ -168,14 +191,46 @@ func IsErrorType(expr ast.Expr) bool {
 	return ident.Name == "error"
 }
 
+// IsValidAPIHandlerSignature checks if a function has the API handler signature:
+// func(c *gin.Context) with no return values
+func IsValidAPIHandlerSignature(funcDecl *ast.FuncDecl) bool {
+	if funcDecl.Type.Params == nil {
+		return false
+	}
+
+	// Check parameters: should have exactly 1 param of type *gin.Context
+	if len(funcDecl.Type.Params.List) != 1 {
+		return false
+	}
+
+	param := funcDecl.Type.Params.List[0]
+	if !IsGinContextType(param.Type) {
+		return false
+	}
+
+	// Check return types: should be void (no return values)
+	if funcDecl.Type.Results != nil && len(funcDecl.Type.Results.List) > 0 {
+		return false
+	}
+
+	return true
+}
+
 // FilePathToRoute converts a .go file path to its route
-// e.g., "pages/index.go" -> "/", "pages/about.go" -> "/about", "pages/blog/[slug].go" -> "/blog/:slug"
-func FilePathToRoute(filePath string, pagesDir string) string {
+// For API handlers, adds /api prefix. For page loaders, no prefix.
+// e.g., "pages/index.go" -> "/", "pages/about.go" -> "/about", "pages/api/hello.go" -> "/api/hello"
+func FilePathToRoute(filePath string, pagesDir string, isAPI bool) string {
 	relativePath := strings.TrimPrefix(filePath, pagesDir)
 	relativePath = strings.TrimPrefix(relativePath, string(filepath.Separator))
 	relativePath = strings.TrimSuffix(relativePath, ".go")
 
-	if relativePath == "index" {
+	// For API handlers in api/ subdirectory, remove "api/" prefix since we'll add it back
+	if isAPI && strings.HasPrefix(relativePath, "api"+string(filepath.Separator)) {
+		relativePath = strings.TrimPrefix(relativePath, "api"+string(filepath.Separator))
+	}
+
+	// For page loaders, index -> /
+	if !isAPI && relativePath == "index" {
 		return "/"
 	}
 
@@ -192,7 +247,14 @@ func FilePathToRoute(filePath string, pagesDir string) string {
 		}
 	}
 
-	return "/" + strings.Join(routeParts, "/")
+	route := "/" + strings.Join(routeParts, "/")
+
+	// For API handlers, add /api prefix
+	if isAPI {
+		route = "/api" + route
+	}
+
+	return route
 }
 
 // FilePathToFunctionName converts a file path to a function name

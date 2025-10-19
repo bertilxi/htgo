@@ -30,6 +30,7 @@ func createProject(name string) error {
 
 	dirs := []string{
 		"pages",
+		"pages/api",
 		".htgo",
 		"cmd/dev",
 		"cmd/build",
@@ -53,6 +54,7 @@ func createProject(name string) error {
 		filepath.Join(projectDir, "pages/index.tsx"):            indexPageTemplate,
 		filepath.Join(projectDir, "pages/index.go"):             indexLoaderTemplate,
 		filepath.Join(projectDir, "pages/loaders_generated.go"): pagesLoadersGeneratedTemplate,
+		filepath.Join(projectDir, "pages/api/hello.go"):         apiHelloTemplate,
 		filepath.Join(projectDir, "styles.css"):                 stylesCssTemplate,
 		filepath.Join(projectDir, "go.mod"):                     goModTemplate,
 		filepath.Join(projectDir, "tsconfig.json"):              tsconfigTemplate,
@@ -104,6 +106,7 @@ var Options = htgo.Options{
 	PagesDir: "./pages",
 	Title:    "My HTGO App",
 	Loaders:  pages.LoaderRegistry,
+	APIHandlers: pages.APIHandlerRegistry,
 }
 `
 
@@ -278,11 +281,35 @@ package pages
 
 import (
 	"github.com/gin-gonic/gin"
+	api "my-app/pages/api"
 )
 
-// LoaderRegistry maps routes to their corresponding loader functions.
+// LoaderRegistry maps routes to their corresponding page loader functions.
 // This is auto-generated from .go files colocated with pages.
 var LoaderRegistry = map[string]func(c *gin.Context) (any, error){
 	"/": LoadIndex,
+}
+
+// APIHandlerRegistry maps routes to their corresponding API handler functions.
+// This is auto-generated from .go files in pages/api/.
+var APIHandlerRegistry = map[string]func(c *gin.Context){
+	"/api/hello": api.Hello,
+}
+`
+
+const apiHelloTemplate = `package api
+
+import (
+	"github.com/gin-gonic/gin"
+)
+
+// Hello is a sample API handler that responds to GET /api/hello
+// Try it: curl http://localhost:8080/api/hello?name=Alice
+func Hello(c *gin.Context) {
+	name := c.DefaultQuery("name", "World")
+	c.JSON(200, gin.H{
+		"message": "Hello, " + name + "!",
+		"status":  "ok",
+	})
 }
 `

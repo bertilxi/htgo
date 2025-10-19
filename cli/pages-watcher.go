@@ -55,7 +55,7 @@ func (pw *pagesWatcher) isLoaderFile(path string) bool {
 		return false
 	}
 	base := filepath.Base(path)
-	if strings.HasSuffix(base, "_test.go") || base == "generate.go" || base == "loaders_generated.go" {
+	if strings.HasSuffix(base, "_test.go") || base == "generate.go" || base == "loaders_generated.go" || base == "api_generated.go" {
 		return false
 	}
 	return true
