@@ -11,11 +11,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/bertilxi/htgo"
+	"github.com/bertilxi/alloy"
 	"github.com/evanw/esbuild/pkg/api"
 )
 
-const tailwindPath = "./.htgo-cache/tailwindcss"
+const tailwindPath = "./.alloy-cache/tailwindcss"
 
 // Tailwind CSS support:
 // - Automatically downloads the Tailwind CLI on first build for your platform
@@ -28,7 +28,7 @@ const tailwindPath = "./.htgo-cache/tailwindcss"
 // Safe by design:
 // - CSS files without Tailwind directive are never modified
 // - Graceful error handling with clear messages if Tailwind processing fails
-// - Temporary files are isolated in .htgo-cache directory
+// - Temporary files are isolated in .alloy-cache directory
 // - No configuration required - uses Tailwind v4 defaults with inline @theme/@plugin support
 
 func download(url string, path string) error {
@@ -78,7 +78,7 @@ func tailwindUrl() (string, error) {
 
 func getTailwindPath() (string, error) {
 	if _, err := os.Stat(tailwindPath); os.IsNotExist(err) {
-		if err := os.MkdirAll("./.htgo-cache", 0755); err != nil {
+		if err := os.MkdirAll("./.alloy-cache", 0755); err != nil {
 			return "", fmt.Errorf("failed to create cache directory: %w", err)
 		}
 
@@ -124,7 +124,7 @@ func runTailwind(inputFile string, outputFile string, minify bool) error {
 
 // DetectTailwind scans all pages to see if any CSS file uses Tailwind directive.
 // Returns true if Tailwind CSS is used anywhere in the project.
-func DetectTailwind(pages []htgo.Page) (bool, error) {
+func DetectTailwind(pages []alloy.Page) (bool, error) {
 	// Check root-level CSS files
 	if content, err := os.ReadFile("styles.css"); err == nil {
 		if strings.Contains(string(content), `@import "tailwindcss"`) {
@@ -162,7 +162,7 @@ func DetectTailwind(pages []htgo.Page) (bool, error) {
 
 // EnsureTailwind detects if Tailwind is used and pre-downloads the CLI if needed.
 // This is called before serving any pages to avoid lazy downloads during requests.
-func EnsureTailwind(pages []htgo.Page) error {
+func EnsureTailwind(pages []alloy.Page) error {
 	usesTailwind, err := DetectTailwind(pages)
 	if err != nil {
 		return fmt.Errorf("failed to detect tailwind usage: %w", err)
@@ -229,7 +229,7 @@ func newTailwindPlugin(shouldMinify bool, enableCache bool) api.Plugin {
 
 				tmpFilePath := filepath.Join(
 					cwd,
-					htgo.CacheDir,
+					alloy.CacheDir,
 					strings.ReplaceAll(strings.ReplaceAll(sourceFullPath, ".css", ""), cwd, "")+".tmp.css",
 				)
 

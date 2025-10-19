@@ -8,12 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bertilxi/htgo"
+	"github.com/bertilxi/alloy"
 	"github.com/fsnotify/fsnotify"
 )
 
 type pagesWatcher struct {
-	engine    *htgo.Engine
+	engine    *alloy.Engine
 	pagesDir  string
 	debounce  time.Duration
 	lastEvent time.Time
@@ -21,7 +21,7 @@ type pagesWatcher struct {
 	mu        sync.Mutex
 }
 
-func newPagesWatcher(engine *htgo.Engine, hotReload *hotReload) *pagesWatcher {
+func newPagesWatcher(engine *alloy.Engine, hotReload *hotReload) *pagesWatcher {
 	return &pagesWatcher{
 		engine:    engine,
 		pagesDir:  engine.PagesDir,
@@ -62,19 +62,19 @@ func (pw *pagesWatcher) isLoaderFile(path string) bool {
 }
 
 func (pw *pagesWatcher) processPageChanges() error {
-	newPages, err := htgo.DiscoverPages(pw.pagesDir, pw.engine.Loaders)
+	newPages, err := alloy.DiscoverPages(pw.pagesDir, pw.engine.Loaders)
 	if err != nil {
 		fmt.Printf("❌ Failed to discover pages: %v\n", err)
 		return err
 	}
 
 	// Find added/modified pages
-	newPageMap := make(map[string]*htgo.Page)
+	newPageMap := make(map[string]*alloy.Page)
 	for i := range newPages {
 		newPageMap[newPages[i].Route] = &newPages[i]
 	}
 
-	oldPageMap := make(map[string]*htgo.Page)
+	oldPageMap := make(map[string]*alloy.Page)
 	for i := range pw.engine.Pages {
 		oldPageMap[pw.engine.Pages[i].Route] = &pw.engine.Pages[i]
 	}
@@ -107,12 +107,12 @@ func (pw *pagesWatcher) processPageChanges() error {
 	return nil
 }
 
-func (pw *pagesWatcher) registerNewPage(page *htgo.Page) error {
+func (pw *pagesWatcher) registerNewPage(page *alloy.Page) error {
 	// Assign engine options to the page
 	page.AssignOptions(pw.engine.Options)
 
 	// Create cache directory for the new page
-	err := os.MkdirAll(filepath.Dir(htgo.PageCacheKey(page.File, "")), 0755)
+	err := os.MkdirAll(filepath.Dir(alloy.PageCacheKey(page.File, "")), 0755)
 	if err != nil {
 		fmt.Printf("❌ Failed to create cache directory: %v\n", err)
 		return err

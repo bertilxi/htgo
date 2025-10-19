@@ -1,4 +1,4 @@
-module github.com/bertilxi/htgo
+module github.com/bertilxi/alloy
 
 go 1.23.5
 

@@ -7,11 +7,11 @@ import (
 	"path"
 	"syscall"
 
-	"github.com/bertilxi/htgo"
+	"github.com/bertilxi/alloy"
 )
 
 func mkdirCache(page string) error {
-	err := os.MkdirAll(path.Dir(htgo.PageCacheKey(page, "")), 0755)
+	err := os.MkdirAll(path.Dir(alloy.PageCacheKey(page, "")), 0755)
 	if err != nil {
 		return err
 	}
@@ -19,8 +19,8 @@ func mkdirCache(page string) error {
 	return nil
 }
 
-func Dev(engine *htgo.Engine) error {
-	err := htgo.CleanCache()
+func Dev(engine *alloy.Engine) error {
+	err := alloy.CleanCache()
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func Dev(engine *htgo.Engine) error {
 	}
 
 	// Discover pages first
-	pages, err := htgo.DiscoverPages(engine.Options.PagesDir, engine.Options.Loaders)
+	pages, err := alloy.DiscoverPages(engine.Options.PagesDir, engine.Options.Loaders)
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func Dev(engine *htgo.Engine) error {
 	// Watch Go files and rebuild on changes
 	gw := newGoWatcher("cmd/dev/main.go", sigChan)
 
-	engine.Router.Static(htgo.CacheDir, htgo.CacheDir)
+	engine.Router.Static(alloy.CacheDir, alloy.CacheDir)
 	engine.Router.GET("/ws", hr.websocket)
 
 	// Start the HTTP server in a goroutine

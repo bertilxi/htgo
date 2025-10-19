@@ -1,4 +1,4 @@
-package htgo
+package alloy
 
 import (
 	"fmt"
@@ -38,7 +38,7 @@ func (engine *Engine) HandleRoutes() {
 	if IsDev() {
 		fmt.Println()
 		fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-		fmt.Println("✓ HTGO Dev Server Ready")
+		fmt.Println("✓ Alloy Dev Server Ready")
 		fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 		fmt.Printf("🌐 Local:       http://localhost:%s\n", port)
 		fmt.Println()

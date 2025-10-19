@@ -1,6 +1,6 @@
 node_modules/
-.htgo/
-.htgo-cache/
+.alloy/
+.alloy-cache/
 dist/
 main
-htgo
+alloy

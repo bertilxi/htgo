@@ -1,4 +1,4 @@
-package htgo
+package alloy
 
 import (
 	"fmt"
@@ -8,12 +8,12 @@ import (
 	"strings"
 )
 
-const CacheDir = ".htgo"
+const CacheDir = ".alloy"
 
-type HtgoEnv string
+type AlloyEnv string
 
 const (
-	HtgoEnvProd HtgoEnv = "production"
+	AlloyEnvProd AlloyEnv = "production"
 )
 
 var isProduction bool
@@ -22,14 +22,14 @@ func IsProd() bool {
 	if isProduction {
 		return true
 	}
-	return os.Getenv("HTGO_ENV") == string(HtgoEnvProd)
+	return os.Getenv("Alloy_ENV") == string(AlloyEnvProd)
 }
 
 func IsDev() bool {
 	if isProduction {
 		return false
 	}
-	return os.Getenv("HTGO_ENV") == ""
+	return os.Getenv("Alloy_ENV") == ""
 }
 
 func SetProduction(prod bool) {

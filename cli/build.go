@@ -5,11 +5,11 @@ import (
 	"os"
 	"sync"
 
-	"github.com/bertilxi/htgo"
+	"github.com/bertilxi/alloy"
 )
 
-func Build(engine *htgo.Engine) error {
-	os.Setenv("HTGO_ENV", string(htgo.HtgoEnvProd))
+func Build(engine *alloy.Engine) error {
+	os.Setenv("Alloy_ENV", string(alloy.AlloyEnvProd))
 
 	PrintBuildStart(engine)
 
@@ -20,7 +20,7 @@ func Build(engine *htgo.Engine) error {
 	}
 
 	// Discover pages
-	pages, err := htgo.DiscoverPages(engine.Options.PagesDir, engine.Options.Loaders)
+	pages, err := alloy.DiscoverPages(engine.Options.PagesDir, engine.Options.Loaders)
 	if err != nil {
 		return err
 	}
@@ -38,13 +38,13 @@ func Build(engine *htgo.Engine) error {
 		return err
 	}
 
-	err = htgo.CleanCache()
+	err = alloy.CleanCache()
 	if err != nil {
 		return fmt.Errorf("failed to clean cache: %w", err)
 	}
 
 	type buildResult struct {
-		page htgo.Page
+		page alloy.Page
 		err  error
 	}
 
@@ -53,7 +53,7 @@ func Build(engine *htgo.Engine) error {
 
 	for _, page := range engine.Pages {
 		wg.Add(1)
-		go func(p htgo.Page) {
+		go func(p alloy.Page) {
 			defer wg.Done()
 			p.AssignOptions(engine.Options)
 			bundler := bundler{page: &p}

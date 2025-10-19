@@ -1,4 +1,4 @@
-package htgo
+package alloy
 
 import (
 	"fmt"

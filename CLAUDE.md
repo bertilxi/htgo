@@ -1,6 +1,6 @@
-# CLAUDE.md - HTGO Project Guide
+# CLAUDE.md - Alloy Project Guide
 
-Comprehensive guidance for working with HTGO. This document consolidates all essential information for development.
+Comprehensive guidance for working with Alloy. This document consolidates all essential information for development.
 
 ---
 
@@ -21,7 +21,7 @@ Comprehensive guidance for working with HTGO. This document consolidates all ess
 
 ## Project Overview
 
-**HTGO** is a Go library for server-side rendering (SSR) of React applications. It combines:
+**Alloy** is a Go library for server-side rendering (SSR) of React applications. It combines:
 - Go backend with Gin web framework
 - React for UI (both server and client-side)
 - TypeScript/TSX support out of the box
@@ -110,7 +110,7 @@ HTML String  Hydrate
 | `/cli/` | Build and development tools (bundling, dev server, hot reload) |
 | `/examples/minimal/` | Minimal starter example with single page |
 | `/examples/sink/` | Complex example with multiple pages and props handlers |
-| `.htgo/` | Build cache (git-ignored, created at runtime) |
+| `.alloy/` | Build cache (git-ignored, created at runtime) |
 
 ---
 
@@ -119,7 +119,7 @@ HTML String  Hydrate
 ### Setup for Library Development
 
 ```bash
-cd /home/berti/Code/3lines/htgo
+cd /home/berti/Code/3lines/alloy
 go mod tidy
 ```
 
@@ -127,25 +127,25 @@ go mod tidy
 
 ```bash
 cd examples/minimal  # or examples/sink
-htgo install
+alloy install
 ```
 
 ### Create New Project
 
 ```bash
-htgo new my-app
+alloy new my-app
 cd my-app
-htgo install
-htgo dev
+alloy install
+alloy dev
 ```
 
 ---
 
 ## CLI Commands
 
-### `htgo new <name>`
+### `alloy new <name>`
 
-Creates a complete HTGO project with:
+Creates a complete Alloy project with:
 - Page structure (`pages/` directory)
 - Command entry points (`cmd/dev`, `cmd/build`, `cmd/app`)
 - Example welcome page with Tailwind styling
@@ -153,13 +153,13 @@ Creates a complete HTGO project with:
 
 **Usage:**
 ```bash
-htgo new my-app
+alloy new my-app
 cd my-app
-htgo install
-htgo dev
+alloy install
+alloy dev
 ```
 
-### `htgo dev [options]`
+### `alloy dev [options]`
 
 Starts development server with hot-reload.
 
@@ -175,11 +175,11 @@ Starts development server with hot-reload.
 
 **Example:**
 ```bash
-htgo dev              # Port 8080
-htgo dev --port 3000 # Custom port
+alloy dev              # Port 8080
+alloy dev --port 3000 # Custom port
 ```
 
-### `htgo build [options]`
+### `alloy build [options]`
 
 Builds production-ready binary with embedded assets.
 
@@ -195,15 +195,15 @@ Builds production-ready binary with embedded assets.
 
 **Example:**
 ```bash
-htgo build
-htgo build --dir ./myapp
+alloy build
+alloy build --dir ./myapp
 ```
 
-### `htgo --help`
+### `alloy --help`
 
 Shows all available commands and options.
 
-### `htgo version`
+### `alloy version`
 
 Shows CLI version information.
 
@@ -233,17 +233,17 @@ pages/
 In `app.go`:
 
 ```go
-var Options = htgo.Options{
+var Options = alloy.Options{
     Router: gin.Default(),
-    Title:  "My HTGO App",
+    Title:  "My Alloy App",
     Port:   "8080",              // Optional - defaults to 8080
-    Pages: []htgo.Page{
+    Pages: []alloy.Page{
         {
             Route:       "/",
             File:        "pages/index.tsx",
             Interactive: true,              // Enable hydration
             Title:       "Home",
-            MetaTags: []htgo.MetaTag{
+            MetaTags: []alloy.MetaTag{
                 {Name: "description", Content: "Home page"},
             },
         },
@@ -303,7 +303,7 @@ Options{
 // pages/index.tsx
 export default function Home() {
   return <div className="flex items-center justify-center">
-    <h1>Welcome to HTGO</h1>
+    <h1>Welcome to Alloy</h1>
   </div>;
 }
 ```
@@ -357,12 +357,12 @@ func LoadBlog(c *gin.Context) (any, error) {
 // pages/blog/[slug].tsx
 declare global {
   interface Window {
-    __HTGO_PROPS__: any;
+    __Alloy_PROPS__: any;
   }
 }
 
 export default function BlogPost() {
-  const props = window.__HTGO_PROPS__ || {};
+  const props = window.__Alloy_PROPS__ || {};
 
   return (
     <article>
@@ -382,7 +382,7 @@ import 'tailwind.css';
 export default function Home() {
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-r from-blue-500 to-purple-600">
-      <h1 className="text-4xl text-white">Hello HTGO!</h1>
+      <h1 className="text-4xl text-white">Hello Alloy!</h1>
     </div>
   );
 }
@@ -390,7 +390,7 @@ export default function Home() {
 
 ### Component Communication
 
-- **Server → Client**: Props passed via `window.__HTGO_PROPS__`
+- **Server → Client**: Props passed via `window.__Alloy_PROPS__`
 - **Client → Server**: Standard HTTP requests (fetch, axios, etc.)
 - **CSS**: Import normally, `@import "tailwindcss"` enables Tailwind
 
@@ -409,11 +409,11 @@ export default function Home() {
 **Component Bundler** (`cli/bundle.go`):
 - Watches `.tsx` and `.css` files
 - Rebuilds bundles via esbuild
-- Output to `.htgo/` subdirectories
+- Output to `.alloy/` subdirectories
 - Parallel builds for speed
 
 **Hot Reload** (`cli/hot-reload.go`):
-- Watches `.htgo/` output directory
+- Watches `.alloy/` output directory
 - Broadcasts WebSocket "reload" messages
 - Browser auto-refreshes on change
 - Multi-client support for multiple tabs
@@ -423,17 +423,17 @@ export default function Home() {
 1. **Pre-validation**: Checks all page files exist and are valid
 2. **Parallel Bundling**: Builds all pages concurrently
 3. **Minification**: All output minified (identifiers, syntax, whitespace)
-4. **Embedding**: Bundles embedded into binary via `//go:embed .htgo`
+4. **Embedding**: Bundles embedded into binary via `//go:embed .alloy`
 5. **Output**: Single executable in `dist/app`
 
 **Environment Variables:**
-- `HTGO_ENV=production`: Minified bundles, no dev features
+- `Alloy_ENV=production`: Minified bundles, no dev features
 - `GIN_MODE=release`: Gin release mode (no logging)
 
 ### Build Output Structure
 
 ```
-.htgo/
+.alloy/
 ├── pages/
 │   ├── index.ssr.js      # Server-side rendering bundle
 │   ├── index.js          # Client-side hydration bundle
@@ -474,16 +474,16 @@ export default function Home() {
 ### Phase 2: CLI Tool
 
 **Complete Solution**
-- `htgo new` - Project scaffolding
-- `htgo dev` - Development server
-- `htgo build` - Production builds
+- `alloy new` - Project scaffolding
+- `alloy dev` - Development server
+- `alloy build` - Production builds
 - Beautiful, consistent output
 
 **Benefits**
 - One-command project creation
 - Simple, memorable commands
 - Professional developer experience
-- Discoverability via `htgo --help`
+- Discoverability via `alloy --help`
 
 ### Phase 3: Build Process
 
@@ -529,20 +529,20 @@ export default function Home() {
 **Checklist:**
 - Dev server running?
 - WebSocket connection successful (check browser console)
-- `.htgo/` directory exists?
+- `.alloy/` directory exists?
 - Correct port in dev command?
 
 **Fix:**
-- Restart dev server: `Ctrl+C` → `htgo dev`
+- Restart dev server: `Ctrl+C` → `alloy dev`
 - Check browser console for WebSocket errors
-- Ensure `.htgo/` directory exists and is writable
+- Ensure `.alloy/` directory exists and is writable
 
 ### Props Not Appearing
 
 **Checklist:**
 - Props serializable to JSON?
 - Handler function returns correct type?
-- Component accessing `window.__HTGO_PROPS__`?
+- Component accessing `window.__Alloy_PROPS__`?
 
 **Fix:**
 - Check handler error in server logs
@@ -589,7 +589,7 @@ export default function Home() {
 ### Production Build
 
 ```bash
-htgo build
+alloy build
 ```
 
 Produces: `dist/app` (single binary with all assets)
@@ -609,7 +609,7 @@ FROM golang:1.23
 WORKDIR /app
 COPY . .
 
-RUN htgo install && htgo build
+RUN alloy install && alloy build
 
 FROM alpine:latest
 WORKDIR /app
@@ -624,7 +624,7 @@ CMD ["./app"]
 
 ### Keep It Simple
 
-- HTGO prioritizes minimal API surface
+- Alloy prioritizes minimal API surface
 - Page definitions are just data structs
 - Bundling is handled automatically
 - Single-binary deployment is the default
@@ -665,21 +665,21 @@ No unit tests currently. Examples serve as functional validation. When adding fe
 
 | Task | Command |
 |------|---------|
-| Create new project | `htgo new my-app` |
-| Install dependencies | `htgo install` |
-| Start dev server | `htgo dev` |
-| Build production | `htgo build` |
+| Create new project | `alloy new my-app` |
+| Install dependencies | `alloy install` |
+| Start dev server | `alloy dev` |
+| Build production | `alloy build` |
 | Run production | `./dist/app` |
-| Show help | `htgo --help` |
-| Show version | `htgo version` |
+| Show help | `alloy --help` |
+| Show version | `alloy version` |
 
 ### Dev Server
 
 | Action | Trigger |
 |--------|---------|
 | Hot reload | Save file → auto-refresh |
-| Restart server | `Ctrl+C` → `htgo dev` |
-| Custom port | `htgo dev --port 3000` |
+| Restart server | `Ctrl+C` → `alloy dev` |
+| Custom port | `alloy dev --port 3000` |
 
 ### Go Commands
 
@@ -694,7 +694,7 @@ No unit tests currently. Examples serve as functional validation. When adding fe
 
 ```
 project/
-├── .htgo/              # Build cache (git-ignored)
+├── .alloy/              # Build cache (git-ignored)
 ├── pages/              # React components
 │   ├── index.tsx
 │   ├── index.go        # Optional loader
@@ -713,7 +713,7 @@ project/
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `PORT` | Server port | 8080 |
-| `HTGO_ENV` | Set to "production" for build | unset (dev) |
+| `Alloy_ENV` | Set to "production" for build | unset (dev) |
 | `GIN_MODE` | Set to "release" for production | unset (debug) |
 
 ---
@@ -723,10 +723,10 @@ project/
 ### Planned Improvements
 
 **Phase 4: Advanced Tools**
-- Configuration validation (`htgo validate`)
-- Component scaffolding (`htgo generate`)
+- Configuration validation (`alloy validate`)
+- Component scaffolding (`alloy generate`)
 - Better error messages for common mistakes
-- Bundle size analysis (`htgo analyze`)
+- Bundle size analysis (`alloy analyze`)
 
 **Phase 5: Documentation**
 - Expanded README with tutorials

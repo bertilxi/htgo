@@ -1,10 +1,10 @@
-# HTGO
+# Alloy
 
-HTGO is a simple and fast React server-side rendering library for Go.
+Alloy is a simple and fast React server-side rendering library for Go.
 
 ## Features
 
-- **Fast**: HTGO is built on top of [esbuild](https://github.com/evanw/esbuild) and [v8go](https://github.com/rogchap/v8go) for server-side rendering.
+- **Fast**: Alloy is built on top of [esbuild](https://github.com/evanw/esbuild) and [v8go](https://github.com/rogchap/v8go) for server-side rendering.
 - **Simple**: provides a minimal API for building SSR pages.
 - **Easy to use**: is easy to use and requires minimal setup.
 

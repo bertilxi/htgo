@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/bertilxi/htgo"
+	"github.com/bertilxi/alloy"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -39,7 +39,7 @@ func (hr *hotReload) reload() {
 		return
 	}
 
-	htgo.ClearBundleCache()
+	alloy.ClearBundleCache()
 
 	for conn, writeMutex := range hr.connections {
 		go func(c *websocket.Conn, m *sync.Mutex) {
@@ -57,7 +57,7 @@ func (hr *hotReload) watch() error {
 	}
 	defer watcher.Close()
 
-	err = filepath.Walk(htgo.CacheDir, func(path string, fi os.FileInfo, err error) error {
+	err = filepath.Walk(alloy.CacheDir, func(path string, fi os.FileInfo, err error) error {
 		if fi.Mode().IsDir() {
 			return watcher.Add(path)
 		}

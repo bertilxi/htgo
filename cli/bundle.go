@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bertilxi/htgo"
+	"github.com/bertilxi/alloy"
 	esbuild "github.com/evanw/esbuild/pkg/api"
 )
 
@@ -32,7 +32,7 @@ const root = ReactDOM.hydrateRoot(
 );`
 
 type bundler struct {
-	page *htgo.Page
+	page *alloy.Page
 }
 
 func formatBuildErrors(errors []esbuild.Message) string {
@@ -60,7 +60,7 @@ var clientLoaderMap = map[string]esbuild.Loader{
 }
 
 func getSourcemapMode() esbuild.SourceMap {
-	if htgo.IsProd() {
+	if alloy.IsProd() {
 		return esbuild.SourceMapNone
 	}
 	return esbuild.SourceMapLinked
@@ -70,7 +70,7 @@ func (b *bundler) backendOptions() esbuild.BuildOptions {
 	pagePath, _ := filepath.Abs(b.page.File)
 	pageDir := filepath.Dir(pagePath)
 	pageName := filepath.Base(pagePath)
-	outfile := strings.TrimSuffix(path.Join(htgo.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".ssr.js"
+	outfile := strings.TrimSuffix(path.Join(alloy.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".ssr.js"
 
 	return esbuild.BuildOptions{
 		Outfile: outfile,
@@ -88,9 +88,9 @@ func (b *bundler) backendOptions() esbuild.BuildOptions {
 		Loader:            serverLoaderMap,
 		Bundle:            true,
 		Write:             true,
-		MinifyWhitespace:  htgo.IsProd(),
-		MinifyIdentifiers: htgo.IsProd(),
-		MinifySyntax:      htgo.IsProd(),
+		MinifyWhitespace:  alloy.IsProd(),
+		MinifyIdentifiers: alloy.IsProd(),
+		MinifySyntax:      alloy.IsProd(),
 		Sourcemap:         getSourcemapMode(),
 	}
 }
@@ -111,7 +111,7 @@ func (b *bundler) clientOptions() esbuild.BuildOptions {
 	pagePath, _ := filepath.Abs(b.page.File)
 	pageDir := filepath.Dir(pagePath)
 	pageName := filepath.Base(pagePath)
-	outfile := strings.TrimSuffix(path.Join(htgo.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".js"
+	outfile := strings.TrimSuffix(path.Join(alloy.CacheDir, b.page.File), filepath.Ext(b.page.File)) + ".js"
 
 	clientOpts := esbuild.BuildOptions{
 		Outfile: outfile,
@@ -126,12 +126,12 @@ func (b *bundler) clientOptions() esbuild.BuildOptions {
 		Loader:            clientLoaderMap,
 		Bundle:            true,
 		Write:             true,
-		MinifyWhitespace:  htgo.IsProd(),
-		MinifyIdentifiers: htgo.IsProd(),
-		MinifySyntax:      htgo.IsProd(),
+		MinifyWhitespace:  alloy.IsProd(),
+		MinifyIdentifiers: alloy.IsProd(),
+		MinifySyntax:      alloy.IsProd(),
 		Sourcemap:         getSourcemapMode(),
 		Plugins: []esbuild.Plugin{
-			newTailwindPlugin(htgo.IsProd(), false), // disable caching in dev for hot reload
+			newTailwindPlugin(alloy.IsProd(), false), // disable caching in dev for hot reload
 		},
 	}
 

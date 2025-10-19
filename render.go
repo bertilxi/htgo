@@ -1,4 +1,4 @@
-package htgo
+package alloy
 
 import (
 	"encoding/json"
@@ -32,7 +32,7 @@ const htmlTemplate = `<!DOCTYPE html>
     <meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{.Title}}</title>
-	<link rel="icon" href="/.htgo/favicon.svg" type="image/svg+xml" />
+	<link rel="icon" href="/.alloy/favicon.svg" type="image/svg+xml" />
 	<link rel="stylesheet" href="{{.CSS}}" />
 	{{range .MetaTags}}
 		<meta name="{{.Name}}" content="{{.Content}}" property="{{.Property}}" />

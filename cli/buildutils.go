@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bertilxi/htgo"
+	"github.com/bertilxi/alloy"
 )
 
 type BuildStats struct {
@@ -23,7 +23,7 @@ type PageError struct {
 	File  string
 }
 
-func ValidatePages(engine *htgo.Engine) ([]PageError, []string) {
+func ValidatePages(engine *alloy.Engine) ([]PageError, []string) {
 	var errors []PageError
 	var warnings []string
 
@@ -108,7 +108,7 @@ func PrintValidationResults(errors []PageError, warnings []string) error {
 	return nil
 }
 
-func PrintBuildStart(engine *htgo.Engine) {
+func PrintBuildStart(engine *alloy.Engine) {
 	fmt.Println()
 	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 	fmt.Println("📦 Starting Production Build")
@@ -144,7 +144,7 @@ func PrintBuildComplete(totalPages int, warnings []string) {
 	fmt.Println()
 	fmt.Println("Next steps:")
 	fmt.Println("  • Run production: ./dist/app")
-	fmt.Println("  • Or run in development: htgo dev")
+	fmt.Println("  • Or run in development: alloy dev")
 	fmt.Println()
 	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 	fmt.Println()
