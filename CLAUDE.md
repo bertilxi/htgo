@@ -766,3 +766,4 @@ Handler: func(c *gin.Context) (any, error)
 
 **Last Updated:** October 2025
 **Status:** Production Ready ✓
+- Never build the go binary inside the project, i want to avoid committing it
