@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -65,6 +66,32 @@ func (engine *Engine) Start() error {
 		return err
 	}
 	return engine.Listen()
+}
+
+// AssignOptions assigns global options to a page.
+func (page *Page) AssignOptions(options Options) {
+	page.embedFS = options.EmbedFS
+	page.ErrorHandler = options.ErrorHandler
+	page.Class = options.Class
+	page.Links = append(page.Links, options.Links...)
+	page.MetaTags = append(page.MetaTags, options.MetaTags...)
+	page.Lang = options.Lang
+
+	if page.Lang == "" {
+		page.Lang = "en"
+	}
+	if page.Title == "" {
+		page.Title = options.Title
+	}
+}
+
+// assetURL constructs a proper asset URL path.
+func (page *Page) assetURL(path string) string {
+	url := "/" + path
+	if strings.HasPrefix(url, "//") {
+		url = strings.TrimPrefix(url, "/")
+	}
+	return url
 }
 
 func New(options Options) *Engine {
