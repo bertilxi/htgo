@@ -19,18 +19,18 @@ type Link struct {
 }
 
 type Page struct {
-	Route       string
-	File        string
-	Interactive bool
-	Props       any
-	Title       string
-	MetaTags    []MetaTag
-	Links       []Link
-	Lang        string
-	Class       string
-	Loader      PageLoader
-	embedFS     *embed.FS
-	port        string
+	Route        string
+	File         string
+	Interactive  bool
+	Props        any
+	Title        string
+	MetaTags     []MetaTag
+	Links        []Link
+	Lang         string
+	Class        string
+	Loader       PageLoader
+	ErrorHandler ErrorHandler // Error handler for this page
+	embedFS      *embed.FS
 }
 
 type ErrorHandler func(c *gin.Context, err error, page *Page)

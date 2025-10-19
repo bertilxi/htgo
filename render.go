@@ -126,15 +126,8 @@ func (page *Page) ssr(props string) (string, error) {
 	return res.String(), nil
 }
 
-func getErrorHandler(page *Page) ErrorHandler {
-	if ctx, exists := pageContexts[page.File]; exists && ctx.errorHandler != nil {
-		return ctx.errorHandler
-	}
-	return nil
-}
-
 func (p *Page) Render(c *gin.Context) {
-	errorHandler := getErrorHandler(p)
+	errorHandler := p.ErrorHandler
 	props := p.Props
 
 	if p.Loader != nil {
@@ -235,7 +228,7 @@ func (p *Page) Render(c *gin.Context) {
 		Lang:            template.HTML(p.Lang),
 		Class:           template.HTML(p.Class),
 		Hydrate:         p.Interactive,
-		WebSocketPort:   p.port,
+		WebSocketPort:   "", // Will use window.location.port or 8080
 	}
 
 	c.Header("Content-Type", "text/html")

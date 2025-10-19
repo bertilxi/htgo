@@ -84,12 +84,36 @@ func Dev(engine *alloy.Engine) error {
 	// Watch Go files and rebuild on changes
 	gw := newGoWatcher("cmd/dev/main.go", sigChan)
 
-	engine.Router.Static(alloy.CacheDir, alloy.CacheDir)
+	// Register bundles and routes
+	engine.RegisterBundles()
+	if err := engine.RegisterRoutes(); err != nil {
+		return err
+	}
 	engine.Router.GET("/ws", hr.websocket)
+
+	// Print dev server ready message with routes
+	port := engine.Port
+	if port == "" {
+		port = "8080"
+	}
+	fmt.Println()
+	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+	fmt.Println("✓ Alloy Dev Server Ready")
+	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+	fmt.Printf("🌐 Local:       http://localhost:%s\n", port)
+	fmt.Println()
+	fmt.Println("📄 Routes:")
+	for _, page := range engine.Pages {
+		fmt.Printf("   • %s\n", page.Route)
+	}
+	fmt.Println()
+	fmt.Println("🔄 Hot reload enabled - changes will auto-refresh")
+	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+	fmt.Println()
 
 	// Start the HTTP server in a goroutine
 	go func() {
-		engine.HandleRoutes()
+		engine.Listen()
 	}()
 
 	// Start watching Go files (blocks until signal received)

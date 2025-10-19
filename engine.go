@@ -9,11 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (engine *Engine) HandleRoutes() {
+// RegisterRoutes registers all pages and handlers to the Gin router.
+// Call this after creating the engine but before calling Start().
+func (engine *Engine) RegisterRoutes() error {
 	pages, err := DiscoverPages(engine.PagesDir, engine.Loaders)
 	if err != nil {
-		fmt.Printf("Error discovering pages: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("discover pages: %w", err)
 	}
 
 	engine.Pages = pages
@@ -30,43 +31,40 @@ func (engine *Engine) HandleRoutes() {
 		engine.Router.GET(engine.Pages[i].Route, engine.Pages[i].Render)
 	}
 
-	port := engine.Port
-	if port == "" {
-		port = "8080"
-	}
-
-	if IsDev() {
-		fmt.Println()
-		fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-		fmt.Println("✓ Alloy Dev Server Ready")
-		fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-		fmt.Printf("🌐 Local:       http://localhost:%s\n", port)
-		fmt.Println()
-		fmt.Println("📄 Routes:")
-		for _, page := range engine.Pages {
-			fmt.Printf("   • %s\n", page.Route)
-		}
-		fmt.Println()
-		fmt.Println("🔄 Hot reload enabled - changes will auto-refresh")
-		fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-		fmt.Println()
-	}
-
-	engine.Router.Run(":" + port)
+	return nil
 }
 
-func (engine *Engine) Start() {
+// RegisterBundles registers the bundle static file handler.
+// Serves bundles from disk (dev) or embedded FS (production).
+func (engine *Engine) RegisterBundles() {
 	if engine.EmbedFS == nil {
 		engine.Router.Static(CacheDir, CacheDir)
 	} else {
 		engine.Router.Any(CacheDir+"/*path", func(c *gin.Context) {
 			route := c.Param("path")
-
 			c.FileFromFS(path.Join(CacheDir, route), http.FS(engine.EmbedFS))
 		})
 	}
+}
 
-	engine.HandleRoutes()
+// Listen starts the HTTP server on the configured port.
+// Must call RegisterRoutes() and RegisterBundles() before this.
+func (engine *Engine) Listen() error {
+	port := engine.Port
+	if port == "" {
+		port = "8080"
+	}
+	return engine.Router.Run(":" + port)
+}
+
+// Start is a convenience method that calls RegisterBundles(), RegisterRoutes(), and Listen() in order.
+// Deprecated: Use RegisterBundles(), RegisterRoutes(), and Listen() directly for more control.
+func (engine *Engine) Start() error {
+	engine.RegisterBundles()
+	if err := engine.RegisterRoutes(); err != nil {
+		return err
+	}
+	return engine.Listen()
 }
 
 func New(options Options) *Engine {
